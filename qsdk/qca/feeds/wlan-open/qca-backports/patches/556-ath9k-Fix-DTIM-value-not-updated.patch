@@ -1,0 +1,12 @@
+--- a/drivers/net/wireless/ath/ath9k/main.c
++++ b/drivers/net/wireless/ath/ath9k/main.c
+@@ -1696,7 +1696,8 @@ static void ath9k_bss_info_changed(struct ieee80211_hw *hw,
+ 	}
+ 
+ 	if ((changed & BSS_CHANGED_BEACON_ENABLED) ||
+-	    (changed & BSS_CHANGED_BEACON_INT))
++	    (changed & BSS_CHANGED_BEACON_INT) ||
++	    (changed & BSS_CHANGED_BEACON_INFO))
+ 		ath9k_beacon_config(sc, vif, changed);
+ 
+ 	if (changed & BSS_CHANGED_ERP_SLOT) {

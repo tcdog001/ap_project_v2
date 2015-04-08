@@ -1,0 +1,14 @@
+--- a/net/mac80211/wme.c
++++ b/net/mac80211/wme.c
+@@ -154,6 +154,11 @@ u16 ieee80211_select_queue(struct ieee80211_sub_if_data *sdata,
+ 		return IEEE80211_AC_BE;
+ 	}
+ 
++	if (skb->protocol == htons(ETH_P_PAE)) {
++		skb->priority = 7;
++		return IEEE80211_AC_VO;
++	}
++
+ 	/* use the data classifier to determine what 802.1d tag the
+ 	 * data frame has */
+ 	rcu_read_lock();

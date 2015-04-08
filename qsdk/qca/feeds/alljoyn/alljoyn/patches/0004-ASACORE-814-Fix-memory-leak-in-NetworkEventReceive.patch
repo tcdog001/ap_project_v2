@@ -1,0 +1,46 @@
+From 235c8ec2ba49fa920e61769cec9c211a34b6b7c4 Mon Sep 17 00:00:00 2001
+From: Sheshambika Venkateshwaran <sheshamb@qce.qualcomm.com>
+Date: Thu, 14 Aug 2014 10:24:26 -0700
+Subject: [PATCH 4/4] ASACORE-814 Fix memory leak in NetworkEventReceive.
+
+Change-Id: Iaef4595fe29124e17c49bcc66c3f7d8f43bc1b59
+Signed-off-by: Sheshambika Venkateshwaran <sheshamb@qce.qualcomm.com>
+---
+ common/os/posix/IfConfigDarwin.cc | 4 +++-
+ common/os/posix/IfConfigLinux.cc  | 5 ++++-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/common/os/posix/IfConfigDarwin.cc b/common/os/posix/IfConfigDarwin.cc
+index 2120c75..06fb1c4 100644
+--- a/common/os/posix/IfConfigDarwin.cc
++++ b/common/os/posix/IfConfigDarwin.cc
+@@ -499,7 +499,9 @@ NetworkEventType NetworkEventReceive(qcc::SocketFd sockFd, std::set<uint32_t>& n
+     const uint32_t BUFSIZE = 65536;
+     char* buffer = new char[BUFSIZE];
+ 
+-    return NetworkEventRecv(sockFd, buffer, BUFSIZE, networkRefreshSet);
++    NetworkEventType ret = NetworkEventRecv(sockFd, buffer, BUFSIZE, networkRefreshSet);
++    delete[] buffer;
++    return ret;
+ }
+ 
+ } // namespace ajn
+diff --git a/common/os/posix/IfConfigLinux.cc b/common/os/posix/IfConfigLinux.cc
+index 5b46722..41ddc00 100644
+--- a/common/os/posix/IfConfigLinux.cc
++++ b/common/os/posix/IfConfigLinux.cc
+@@ -809,7 +809,10 @@ NetworkEventType NetworkEventReceive(qcc::SocketFd sockFd, std::set<uint32_t>& n
+     const uint32_t BUFSIZE = 65536;
+     char* buffer = new char[BUFSIZE];
+ 
+-    return NetworkEventRecv(sockFd, buffer, BUFSIZE, networkRefreshSet);
++    NetworkEventType ret = NetworkEventRecv(sockFd, buffer, BUFSIZE, networkRefreshSet);
++
++    delete[] buffer;
++    return ret;
+ }
+ 
+ } // namespace ajn
+-- 
+1.9.1
+

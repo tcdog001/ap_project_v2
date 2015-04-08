@@ -1,0 +1,124 @@
+--- a/drivers/net/wireless/ath/ath9k/ath9k.h
++++ b/drivers/net/wireless/ath/ath9k/ath9k.h
+@@ -558,6 +558,7 @@ static inline int ath9k_dump_btcoex(struct ath_softc *sc, u8 *buf, u32 size)
+ #define ATH_LED_PIN_9300		10
+ #define ATH_LED_PIN_9485		6
+ #define ATH_LED_PIN_9462		4
++#define ATH_LED_PIN_9531		12
+ 
+ #ifdef CPTCFG_MAC80211_LEDS
+ void ath_init_leds(struct ath_softc *sc);
+--- a/drivers/net/wireless/ath/ath9k/gpio.c
++++ b/drivers/net/wireless/ath/ath9k/gpio.c
+@@ -15,6 +15,7 @@
+  */
+ 
+ #include "ath9k.h"
++#include <linux/gpio.h>
+ #include <linux/ath9k_platform.h>
+ 
+ /********************************/
+@@ -153,9 +154,16 @@ void ath_fill_led_pin(struct ath_softc *sc)
+ {
+ 	struct ath_hw *ah = sc->sc_ah;
+ 
+-	if (AR_SREV_9100(ah) || (ah->led_pin >= 0))
++	if (AR_SREV_9100(ah))
+ 		return;
+ 
++	if (ah->led_pin >= 0) {
++		if (AR_SREV_9531(sc->sc_ah) &&
++				ah->led_pin >= AR9531_NUM_GPIO_OUTPUT_LOCAL)
++			gpio_direction_output(ah->led_pin, 1);
++		return;
++	}
++
+ 	if (AR_SREV_9287(ah))
+ 		ah->led_pin = ATH_LED_PIN_9287;
+ 	else if (AR_SREV_9485(sc->sc_ah))
+@@ -164,14 +172,25 @@ void ath_fill_led_pin(struct ath_softc *sc)
+ 		ah->led_pin = ATH_LED_PIN_9300;
+ 	else if (AR_SREV_9462(sc->sc_ah) || AR_SREV_9565(sc->sc_ah))
+ 		ah->led_pin = ATH_LED_PIN_9462;
++	else if (AR_SREV_9531(sc->sc_ah))
++		ah->led_pin = ATH_LED_PIN_9531;
+ 	else
+ 		ah->led_pin = ATH_LED_PIN_DEF;
+ 
+-	/* Configure gpio 1 for output */
+-	ath9k_hw_cfg_output(ah, ah->led_pin, AR_GPIO_OUTPUT_MUX_AS_OUTPUT);
++	if (AR_SREV_9531(sc->sc_ah)) {
++		/* The GPIO pin is not on local io map memory */
++		if (gpio_request_one(ah->led_pin,
++					GPIOF_DIR_OUT | GPIOF_INIT_HIGH,
++					"gpio-ath9k-led"))
++			ath_dbg(ath9k_hw_common(sc->sc_ah), ANY,
++					"failed to request gpio %d\n", ah->led_pin);
++	} else {
++		/* Configure gpio 1 for output */
++		ath9k_hw_cfg_output(ah, ah->led_pin, AR_GPIO_OUTPUT_MUX_AS_OUTPUT);
+ 
+-	/* LED off, active low */
+-	ath9k_hw_set_gpio(ah, ah->led_pin, 1);
++		/* LED off, active low */
++		ath9k_hw_set_gpio(ah, ah->led_pin, 1);
++	}
+ }
+ #endif
+ 
+--- a/drivers/net/wireless/ath/ath9k/hw.c
++++ b/drivers/net/wireless/ath/ath9k/hw.c
+@@ -20,6 +20,7 @@
+ #include <linux/time.h>
+ #include <linux/bitops.h>
+ #include <linux/etherdevice.h>
++#include <linux/gpio.h>
+ #include <asm/unaligned.h>
+ 
+ #include "hw.h"
+@@ -2542,6 +2543,9 @@ void ath9k_hw_cfg_gpio_input(struct ath_hw *ah, u32 gpio)
+ 		return;
+ 	}
+ 
++	if (AR_SREV_9531(ah) && gpio >= AR9531_NUM_GPIO_INPUT_LOCAL)
++		return;
++
+ 	gpio_shift = gpio << 1;
+ 	REG_RMW(ah,
+ 		AR_GPIO_OE_OUT,
+@@ -2591,6 +2595,9 @@ void ath9k_hw_cfg_output(struct ath_hw *ah, u32 gpio,
+ 		return;
+ 	}
+ 
++	if (AR_SREV_9531(ah) && gpio >= AR9531_NUM_GPIO_OUTPUT_LOCAL)
++		return;
++
+ 	ath9k_hw_gpio_cfg_output_mux(ah, gpio, ah_signal_type);
+ 	gpio_shift = 2 * gpio;
+ 	REG_RMW(ah,
+@@ -2612,8 +2619,11 @@ void ath9k_hw_set_gpio(struct ath_hw *ah, u32 gpio, u32 val)
+ 	if (AR_SREV_9271(ah))
+ 		val = ~val;
+ 
+-	REG_RMW(ah, AR_GPIO_IN_OUT, ((val & 1) << gpio),
+-		AR_GPIO_BIT(gpio));
++	if (AR_SREV_9531(ah) && gpio >= AR9531_NUM_GPIO_OUTPUT_LOCAL)
++		gpio_set_value(gpio, val & 1);
++	else
++		REG_RMW(ah, AR_GPIO_IN_OUT, ((val & 1) << gpio),
++				AR_GPIO_BIT(gpio));
+ }
+ EXPORT_SYMBOL(ath9k_hw_set_gpio);
+ 
+--- a/drivers/net/wireless/ath/ath9k/reg.h
++++ b/drivers/net/wireless/ath/ath9k/reg.h
+@@ -1089,6 +1089,9 @@ enum {
+ #define AR9300_NUM_GPIO                          17
+ #define AR7010_NUM_GPIO                          16
+ 
++#define AR9531_NUM_GPIO_OUTPUT_LOCAL		 4
++#define AR9531_NUM_GPIO_INPUT_LOCAL		 11
++
+ #define AR_GPIO_IN_OUT                           (AR_SREV_9340(ah) ? 0x4028 : 0x4048)
+ #define AR_GPIO_IN_VAL                           0x0FFFC000
+ #define AR_GPIO_IN_VAL_S                         14

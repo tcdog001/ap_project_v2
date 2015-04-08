@@ -1,0 +1,186 @@
+diff --git a/include/net/cfg80211.h b/include/net/cfg80211.h
+index d299f34..b1d3382 100644
+--- a/include/net/cfg80211.h
++++ b/include/net/cfg80211.h
+@@ -2260,6 +2260,10 @@ struct cfg80211_qos_map {
+  * @channel_switch: initiate channel-switch procedure (with CSA)
+  *
+  * @set_qos_map: Set QoS mapping information to the driver
++ *
++ * @set_ap_chanwidth: Set the AP (including P2P GO) mode channel width for the
++ *	given interface This is used e.g. for dynamic HT 20/40 MHz channel width
++ *	changes during the lifetime of the BSS.
+  */
+ struct cfg80211_ops {
+ 	int	(*suspend)(struct wiphy *wiphy, struct cfg80211_wowlan *wow);
+@@ -2502,9 +2506,13 @@ struct cfg80211_ops {
+ 	int	(*channel_switch)(struct wiphy *wiphy,
+ 				  struct net_device *dev,
+ 				  struct cfg80211_csa_settings *params);
++
+ 	int     (*set_qos_map)(struct wiphy *wiphy,
+ 			       struct net_device *dev,
+ 			       struct cfg80211_qos_map *qos_map);
++
++	int	(*set_ap_chanwidth)(struct wiphy *wiphy, struct net_device *dev,
++				    struct cfg80211_chan_def *chandef);
+ };
+ 
+ /*
+diff --git a/include/uapi/linux/nl80211.h b/include/uapi/linux/nl80211.h
+index 094f81b..f131fca 100644
+--- a/include/uapi/linux/nl80211.h
++++ b/include/uapi/linux/nl80211.h
+@@ -3846,6 +3846,9 @@ enum nl80211_ap_sme_features {
+  *	interface. An active monitor interface behaves like a normal monitor
+  *	interface, but gets added to the driver. It ensures that incoming
+  *	unicast packets directed at the configured interface address get ACKed.
++ * @NL80211_FEATURE_AP_MODE_CHAN_WIDTH_CHANGE: This driver supports dynamic
++ *	channel bandwidth change (e.g., HT 20 <-> 40 MHz channel) during the
++ *	lifetime of a BSS.
+  */
+ enum nl80211_feature_flags {
+ 	NL80211_FEATURE_SK_TX_STATUS			= 1 << 0,
+@@ -3866,6 +3869,7 @@ enum nl80211_feature_flags {
+ 	NL80211_FEATURE_FULL_AP_CLIENT_STATE		= 1 << 15,
+ 	NL80211_FEATURE_USERSPACE_MPM			= 1 << 16,
+ 	NL80211_FEATURE_ACTIVE_MONITOR			= 1 << 17,
++	NL80211_FEATURE_AP_MODE_CHAN_WIDTH_CHANGE	= 1 << 18,
+ };
+ 
+ /**
+diff --git a/net/wireless/nl80211.c b/net/wireless/nl80211.c
+index abbdc4a..49ff3b9 100644
+--- a/net/wireless/nl80211.c
++++ b/net/wireless/nl80211.c
+@@ -1884,18 +1884,20 @@ static int nl80211_parse_chandef(struct cfg80211_registered_device *rdev,
+ }
+ 
+ static int __nl80211_set_channel(struct cfg80211_registered_device *rdev,
+-				 struct wireless_dev *wdev,
++				 struct net_device *dev,
+ 				 struct genl_info *info)
+ {
+ 	struct cfg80211_chan_def chandef;
+ 	int result;
+ 	enum nl80211_iftype iftype = NL80211_IFTYPE_MONITOR;
++	struct wireless_dev *wdev = NULL;
+ 
+-	if (wdev)
+-		iftype = wdev->iftype;
+-
++	if (dev)
++		wdev = dev->ieee80211_ptr;
+ 	if (!nl80211_can_set_dev_channel(wdev))
+ 		return -EOPNOTSUPP;
++	if (wdev)
++		iftype = wdev->iftype;
+ 
+ 	result = nl80211_parse_chandef(rdev, info, &chandef);
+ 	if (result)
+@@ -1904,14 +1906,27 @@ static int __nl80211_set_channel(struct cfg80211_registered_device *rdev,
+ 	switch (iftype) {
+ 	case NL80211_IFTYPE_AP:
+ 	case NL80211_IFTYPE_P2P_GO:
+-		if (wdev->beacon_interval) {
+-			result = -EBUSY;
+-			break;
+-		}
+ 		if (!cfg80211_reg_can_beacon(&rdev->wiphy, &chandef)) {
+ 			result = -EINVAL;
+ 			break;
+ 		}
++		if (wdev->beacon_interval) {
++			if (!dev || !rdev->ops->set_ap_chanwidth ||
++			    !(rdev->wiphy.features &
++			      NL80211_FEATURE_AP_MODE_CHAN_WIDTH_CHANGE)) {
++				result = -EBUSY;
++				break;
++			}
++
++			/* Only allow dynamic channel width changes */
++			if (chandef.chan != wdev->preset_chandef.chan) {
++				result = -EBUSY;
++				break;
++			}
++			result = rdev_set_ap_chanwidth(rdev, dev, &chandef);
++			if (result)
++				break;
++		}
+ 		wdev->preset_chandef = chandef;
+ 		result = 0;
+ 		break;
+@@ -1933,7 +1948,7 @@ static int nl80211_set_channel(struct sk_buff *skb, struct genl_info *info)
+ 	struct cfg80211_registered_device *rdev = info->user_ptr[0];
+ 	struct net_device *netdev = info->user_ptr[1];
+ 
+-	return __nl80211_set_channel(rdev, netdev->ieee80211_ptr, info);
++	return __nl80211_set_channel(rdev, netdev, info);
+ }
+ 
+ static int nl80211_set_wds_peer(struct sk_buff *skb, struct genl_info *info)
+@@ -2053,9 +2068,10 @@ static int nl80211_set_wiphy(struct sk_buff *skb, struct genl_info *info)
+ 	}
+ 
+ 	if (info->attrs[NL80211_ATTR_WIPHY_FREQ]) {
+-		result = __nl80211_set_channel(rdev,
+-				nl80211_can_set_dev_channel(wdev) ? wdev : NULL,
+-				info);
++		result = __nl80211_set_channel(
++			rdev,
++			nl80211_can_set_dev_channel(wdev) ? netdev : NULL,
++			info);
+ 		if (result)
+ 			return result;
+ 	}
+diff --git a/net/wireless/rdev-ops.h b/net/wireless/rdev-ops.h
+index 045c250..3c609b4 100644
+--- a/net/wireless/rdev-ops.h
++++ b/net/wireless/rdev-ops.h
+@@ -947,4 +947,17 @@ static inline int rdev_set_qos_map(struct cfg80211_registered_device *rdev,
+ 	return ret;
+ }
+ 
++static inline int
++rdev_set_ap_chanwidth(struct cfg80211_registered_device *rdev,
++		      struct net_device *dev, struct cfg80211_chan_def *chandef)
++{
++	int ret;
++
++	trace_rdev_set_ap_chanwidth(&rdev->wiphy, dev, chandef);
++	ret = rdev->ops->set_ap_chanwidth(&rdev->wiphy, dev, chandef);
++	trace_rdev_return_int(&rdev->wiphy, ret);
++
++	return ret;
++}
++
+ #endif /* __CFG80211_RDEV_OPS */
+diff --git a/net/wireless/trace.h b/net/wireless/trace.h
+index 50965c8..38b3b9f 100644
+--- a/net/wireless/trace.h
++++ b/net/wireless/trace.h
+@@ -1915,6 +1915,24 @@ TRACE_EVENT(rdev_set_qos_map,
+ 		  WIPHY_PR_ARG, NETDEV_PR_ARG, __entry->num_des)
+ );
+ 
++TRACE_EVENT(rdev_set_ap_chanwidth,
++	TP_PROTO(struct wiphy *wiphy, struct net_device *netdev,
++		 struct cfg80211_chan_def *chandef),
++	TP_ARGS(wiphy, netdev, chandef),
++	TP_STRUCT__entry(
++		WIPHY_ENTRY
++		NETDEV_ENTRY
++		CHAN_DEF_ENTRY
++	),
++	TP_fast_assign(
++		WIPHY_ASSIGN;
++		NETDEV_ASSIGN;
++		CHAN_DEF_ASSIGN(chandef);
++	),
++	TP_printk(WIPHY_PR_FMT ", " NETDEV_PR_FMT ", " CHAN_DEF_PR_FMT,
++		  WIPHY_PR_ARG, NETDEV_PR_ARG, CHAN_DEF_PR_ARG)
++);
++
+ /*************************************************************
+  *	     cfg80211 exported functions traces		     *
+  *************************************************************/

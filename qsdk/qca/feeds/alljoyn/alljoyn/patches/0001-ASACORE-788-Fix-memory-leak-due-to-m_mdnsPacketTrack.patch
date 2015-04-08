@@ -1,0 +1,33 @@
+From 54a5abb065459350f6b84e9d62f79fb9e2f99594 Mon Sep 17 00:00:00 2001
+From: Sheshambika Venkateshwaran <sheshamb@qce.qualcomm.com>
+Date: Mon, 4 Aug 2014 14:32:45 -0700
+Subject: [PATCH 1/4] ASACORE-788 Fix memory leak due to m_mdnsPacketTracker.
+
+Change-Id: I1672f5cc2f91bc553f215a95cc5b5474bf81391a
+Signed-off-by: Sheshambika Venkateshwaran <sheshamb@qce.qualcomm.com>
+---
+ alljoyn_core/router/ns/IpNameServiceImpl.cc | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/alljoyn_core/router/ns/IpNameServiceImpl.cc b/alljoyn_core/router/ns/IpNameServiceImpl.cc
+index d1efec7..7cffc64 100644
+--- a/alljoyn_core/router/ns/IpNameServiceImpl.cc
++++ b/alljoyn_core/router/ns/IpNameServiceImpl.cc
+@@ -6544,6 +6544,14 @@ bool IpNameServiceImpl::RemoveFromPeerInfoMap(const qcc::String& guid)
+         }
+         QCC_DbgHLPrintf(("Erase from peer info map: guid=%s", guid.c_str()));
+         m_peerInfoMap.erase(guid);
++        unordered_map<pair<String, IPEndpoint>, uint16_t, HashPacketTracker, EqualPacketTracker>::iterator it1 = m_mdnsPacketTracker.begin();
++        while (it1 != m_mdnsPacketTracker.end()) {
++            if (it1->first.first == guid) {
++                m_mdnsPacketTracker.erase(it1++);
++            } else {
++                it1++;
++            }
++        }
+         m_mutex.Unlock();
+         return true;
+     }
+-- 
+1.9.1
+

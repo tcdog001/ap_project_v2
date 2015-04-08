@@ -1,0 +1,23 @@
+--- a/drivers/net/wireless/ath/ath9k/ahb.c
++++ b/drivers/net/wireless/ath/ath9k/ahb.c
+@@ -39,6 +39,10 @@ static const struct platform_device_id ath9k_platform_id_table[] = {
+ 		.name = "qca955x_wmac",
+ 		.driver_data = AR9300_DEVID_QCA955X,
+ 	},
++	{
++		.name = "qca953x_wmac",
++		.driver_data = AR9300_DEVID_AR953X,
++	},
+ 	{},
+ };
+ 
+--- a/drivers/net/wireless/ath/ath9k/hw.c
++++ b/drivers/net/wireless/ath/ath9k/hw.c
+@@ -3047,6 +3047,7 @@ static struct {
+ 	{ AR_SREV_VERSION_9462,         "9462" },
+ 	{ AR_SREV_VERSION_9550,         "9550" },
+ 	{ AR_SREV_VERSION_9565,         "9565" },
++	{ AR_SREV_VERSION_9531,         "9531" },
+ };
+ 
+ /* For devices with external radios */

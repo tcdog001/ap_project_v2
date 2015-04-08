@@ -1,0 +1,11 @@
+--- a/drivers/net/wireless/ath/ath9k/xmit.c
++++ b/drivers/net/wireless/ath/ath9k/xmit.c
+@@ -2167,7 +2167,7 @@ int ath_tx_start(struct ieee80211_hw *hw, struct sk_buff *skb,
+ 
+ 	ath_txq_lock(sc, txq);
+ 	if (txq == sc->tx.txq_map[q] &&
+-	    ++txq->pending_frames > sc->tx.txq_max_pending[q] &&
++	    ++txq->pending_frames >= sc->tx.txq_max_pending[q] &&
+ 	    !txq->stopped) {
+ 		ieee80211_stop_queue(sc->hw, q);
+ 		txq->stopped = true;

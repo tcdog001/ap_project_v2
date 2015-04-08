@@ -1,0 +1,11 @@
+--- a/drivers/net/wireless/ath/ath9k/ar953x_initvals.h
++++ b/drivers/net/wireless/ath/ath9k/ar953x_initvals.h
+@@ -503,7 +503,7 @@ static const u32 qca953x_1p0_soc_preamble[][2] = {
+ 	{0x0000702c, 0x00000000},
+ 	{0x00007030, 0x00000000},
+ 	{0x00007034, 0x00000002},
+-	{0x00007038, 0x000004c2},
++	{0x00007038, 0x000002f8},
+ 	{0x00007048, 0x00000000},
+ };
+ 
