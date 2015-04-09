@@ -1,0 +1,44 @@
+Source-Makefile: feeds/qca/utils/qca-spectral/Makefile
+Package: qca-spectral
+Version: 10.2.3.31-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread kmod-qca-wifi +libpthread
+Menu-Depends: 
+Provides: 
+Section: QCA
+Category: QCA Proprietary software
+Title: QCA Spectral Analysis
+Maintainer: Qualcomm Atheros
+Source: qca-spectral-10.2.3.31.tar.bz2
+Type: ipkg
+Description: QCA Spectral Analysis
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+   	menu "overwrite package version"
+		depends on PACKAGE_qca-spectral
+	config qca-spectral_USE_CUSTOM_VERSION
+		depends on PACKAGE_qca-spectral
+		bool "Use custom package version"
+		default n
+
+	config qca-spectral_CUSTOM_VERSION
+		depends on qca-spectral_USE_CUSTOM_VERSION
+		string "qca-spectral version as string (default version: 10.2.3.31)"
+		default "10.2.3.31"
+
+	endmenu
+   	menu "custom source directory"
+		depends on PACKAGE_qca-spectral
+	config qca-spectral_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_qca-spectral
+		bool "Use custom source directory"
+		default n
+	config qca-spectral_CUSTOM_SOURCE_DIR
+		depends on qca-spectral_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+@@
+
+

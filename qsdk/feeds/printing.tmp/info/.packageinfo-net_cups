@@ -1,0 +1,155 @@
+Source-Makefile: feeds/printing/net/cups/Makefile
+Package: cups
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcups +libcupsmime +libcupscgi +libcupsppdc +libusb-1.0 +libavahi-dbus-support +libavahi-client +libdbus +openslp +avahi-autoipd +avahi-dnsconfd
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Title: Common UNIX Printing System (daemon)
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System (daemon)
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: libcups
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +zlib +libpthread +libpng +libjpeg +libavahi-client +libavahi
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: Common UNIX Printing System - Core library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - Core library
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: libcupscgi
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcups
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: Common UNIX Printing System - CGI library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - CGI library
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: libcupsimage
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcups
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: Common UNIX Printing System - Image library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - Image library
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: libcupsmime
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcups
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: Common UNIX Printing System - MIME library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - MIME library
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: libcupsppdc
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcups +libstdcpp
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: Common UNIX Printing System - PPDC library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - PPDC library
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: cups-bsd
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcups
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Title: Common UNIX Printing System - BSD commands (old)
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - BSD commands (old)
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: cups-client
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcups +libcupsimage +libcupsmime
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Title: Common UNIX Printing System - Client commands
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - Client commands
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: cups-ppdc
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcupsppdc
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Title: Common UNIX Printing System - PPDC utils
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - PPDC utils
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+

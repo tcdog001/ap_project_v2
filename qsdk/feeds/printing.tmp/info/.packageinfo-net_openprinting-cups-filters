@@ -1,0 +1,20 @@
+Source-Makefile: feeds/printing/net/openprinting-cups-filters/Makefile
+Package: openprinting-cups-filters
+Submenu: Printing
+Version: 1.0.37-2
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +cups +libcupsimage +fontconfig +libijs +libtiff +libjpeg +libpng +poppler +qpdf +glib2
+Menu-Depends: 
+Provides: 
+Section: Net
+Category: Network
+Title: OpenPrinting CUPS filters
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-filters-1.0.37.tar.xz
+Type: ipkg
+Description: 	CUPS filters maintained by OpenPrinting.
+	The CUPS Filters package contains backends, filters and other software that was once part of the core CUPS distribution but is no longer maintained by Apple Inc.
+http://www.openprinting.org
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+

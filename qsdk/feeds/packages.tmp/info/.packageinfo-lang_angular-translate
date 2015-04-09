@@ -1,0 +1,45 @@
+Source-Makefile: feeds/packages/lang/angular-translate/Makefile
+Package: angular-translate
+Submenu: JavaScript
+Version: 0.1-g5969f29-v1.1.0
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +angular
+Menu-Depends: 
+Provides: 
+Section: language-javascript
+Category: Languages
+Title: Angular-Route
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: angular-translate-0.1-g5969f29.tar.gz
+Type: ipkg
+Description:  Angular URL Routing mechanism.
+http://angularjs.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+Config:
+   	menu "overwrite package version"
+		depends on PACKAGE_angular-translate
+	config angular-translate_USE_CUSTOM_VERSION
+		depends on PACKAGE_angular-translate
+		bool "Use custom package version"
+		default n
+
+	config angular-translate_CUSTOM_VERSION
+		depends on angular-translate_USE_CUSTOM_VERSION
+		string "angular-translate version as string (default version: 0.1-g5969f29)"
+		default "0.1-g5969f29"
+
+	endmenu
+   	menu "custom source directory"
+		depends on PACKAGE_angular-translate
+	config angular-translate_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_angular-translate
+		bool "Use custom source directory"
+		default n
+	config angular-translate_CUSTOM_SOURCE_DIR
+		depends on angular-translate_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+@@
+
+

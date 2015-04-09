@@ -1,0 +1,45 @@
+Source-Makefile: feeds/packages/lang/urijs/Makefile
+Package: urijs
+Submenu: JavaScript
+Version: 0.1-g2bdf950-v3.0.0
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread 
+Menu-Depends: 
+Provides: 
+Section: language-javascript
+Category: Languages
+Title: URI.js
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: urijs-0.1-g2bdf950.tar.gz
+Type: ipkg
+Description:  URI.js is a javascript library for working with URLs.
+http://medialize.github.io/URI.js/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+Config:
+   	menu "overwrite package version"
+		depends on PACKAGE_urijs
+	config urijs_USE_CUSTOM_VERSION
+		depends on PACKAGE_urijs
+		bool "Use custom package version"
+		default n
+
+	config urijs_CUSTOM_VERSION
+		depends on urijs_USE_CUSTOM_VERSION
+		string "urijs version as string (default version: 0.1-g2bdf950)"
+		default "0.1-g2bdf950"
+
+	endmenu
+   	menu "custom source directory"
+		depends on PACKAGE_urijs
+	config urijs_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_urijs
+		bool "Use custom source directory"
+		default n
+	config urijs_CUSTOM_SOURCE_DIR
+		depends on urijs_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+@@
+
+

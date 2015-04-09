@@ -1,0 +1,36 @@
+Source-Makefile: feeds/packages/utils/redis/Makefile
+Package: redis-server
+Submenu: database
+Version: 2.6.13-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libpthread +redis-cli
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Title: Redis
+Maintainer: Mo Chen <moc@qca.qualcomm.com>
+Source: redis-2.6.13.tar.gz
+Type: ipkg
+Description:   Redis is an open source, BSD licensed, advanced key-value store. It is often referred to as a data structure server since keys can contain strings, hashes, lists, sets and sorted sets.
+http://redis.io
+Mo Chen <moc@qca.qualcomm.com>
+@@
+
+Package: redis-cli
+Submenu: database
+Version: 2.6.13-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libpthread
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Title: Redis
+Maintainer: Mo Chen <moc@qca.qualcomm.com>
+Source: redis-2.6.13.tar.gz
+Type: ipkg
+Description: Redis
+http://redis.io
+Mo Chen <moc@qca.qualcomm.com>
+@@
+
+

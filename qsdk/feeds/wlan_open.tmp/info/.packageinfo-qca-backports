@@ -1,0 +1,177 @@
+Source-Makefile: feeds/wlan_open/qca-backports/Makefile
+Package: kmod-qca-cfg80211
+Submenu: QCA mac80211 Wireless Drivers
+Version: <LINUX_VERSION>+20140117-1
+Depends: @(!(TARGET_avr32||TARGET_ps3||TARGET_pxcab)||BROKEN) +iw
+Menu-Depends: 
+Provides: 
+Section: QCA
+Category: Kernel modules
+Title: cfg80211 - wireless configuration API
+Maintainer: Qualcomm Atheros
+Source: backports-20140117.tar.gz
+Type: ipkg
+Description: cfg80211 is the Linux wireless LAN (802.11) configuration API.
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+
+Package: kmod-qca-mac80211
+Menu: 1
+Submenu: QCA mac80211 Wireless Drivers
+Version: <LINUX_VERSION>+20140117-1
+Depends: @(!(TARGET_avr32||TARGET_ps3||TARGET_pxcab)||BROKEN) +kmod-crypto-core +kmod-crypto-arc4 +kmod-crypto-aes +kmod-qca-cfg80211
+Menu-Depends: 
+Provides: 
+Section: QCA
+Category: Kernel modules
+Title: Linux 802.11 Wireless Networking Stack
+Maintainer: Qualcomm Atheros
+Source: backports-20140117.tar.gz
+Type: ipkg
+Kernel-Config: CONFIG_AVERAGE=y
+Description: Generic IEEE 802.11 Networking Stack (mac80211)
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+  if PACKAGE_kmod-qca-mac80211
+
+	config PACKAGE_QCA_MAC80211_DEBUGFS
+		bool "Export mac80211 internals in DebugFS"
+		select KERNEL_DEBUG_FS
+		select KERNEL_RELAY if PACKAGE_kmod-qca-ath9k-common
+		default y
+		help
+		  Select this to see extensive information about
+		  the internal state of mac80211 in debugfs.
+
+	config PACKAGE_QCA_MAC80211_MESH
+		bool "Enable 802.11s mesh support"
+		default y
+
+  endif
+@@
+
+Package: kmod-qca-ath9k-common
+Submenu: QCA mac80211 Wireless Drivers
+Version: <LINUX_VERSION>+20140117-1
+Depends: @(!(TARGET_avr32||TARGET_ps3||TARGET_pxcab)||BROKEN) @PCI_SUPPORT||USB_SUPPORT||TARGET_ar71xx +kmod-qca-ath +@DRIVER_11N_SUPPORT
+Menu-Depends: 
+Provides: 
+Section: QCA
+Category: Kernel modules
+Title: QCA 802.11n wireless devices (common code for ath9k and ath9k_htc)
+Maintainer: Qualcomm Atheros
+Source: backports-20140117.tar.gz
+Type: ipkg
+Description: QCA 802.11n wireless devices (common code for ath9k and ath9k_htc)
+http://linuxwireless.org/en/users/Drivers/ath9k
+Qualcomm Atheros
+@@
+
+Package: kmod-qca-ath9k
+Submenu: QCA mac80211 Wireless Drivers
+Version: <LINUX_VERSION>+20140117-1
+Depends: @(!(TARGET_avr32||TARGET_ps3||TARGET_pxcab)||BROKEN) @PCI_SUPPORT||TARGET_ar71xx +kmod-qca-ath9k-common
+Menu-Depends: 
+Provides: 
+Section: QCA
+Category: Kernel modules
+Title: QCA 802.11n PCI wireless cards support
+Maintainer: Qualcomm Atheros
+Source: backports-20140117.tar.gz
+Type: ipkg
+Description: This module adds support for wireless adapters based on
+QCA IEEE 802.11n AR5008, AR9001,AR9002, AR9003, AR9004 family of chipsets.
+http://linuxwireless.org/en/users/Drivers/ath9k
+Qualcomm Atheros
+@@
+
+Package: kmod-qca-ath9k-htc
+Submenu: QCA mac80211 Wireless Drivers
+Version: <LINUX_VERSION>+20140117-1
+Depends: @(!(TARGET_avr32||TARGET_ps3||TARGET_pxcab)||BROKEN) @USB_SUPPORT +kmod-qca-ath9k-common +kmod-usb-core
+Menu-Depends: 
+Provides: 
+Section: QCA
+Category: Kernel modules
+Title: QCA 802.11n USB device support
+Maintainer: Qualcomm Atheros
+Source: backports-20140117.tar.gz
+Type: ipkg
+Description: This module adds support for wireless adapters based on
+QCA USB AR9271 and AR7010 family of chipsets.
+http://linuxwireless.org/en/users/Drivers/ath9k
+Qualcomm Atheros
+@@
+
+Package: kmod-qca-ath10k
+Menu: 1
+Submenu: QCA mac80211 Wireless Drivers
+Version: <LINUX_VERSION>+20140117-1
+Depends: @(!(TARGET_avr32||TARGET_ps3||TARGET_pxcab)||BROKEN) @PCI_SUPPORT +kmod-qca-ath +@DRIVER_11N_SUPPORT
+Menu-Depends: 
+Provides: 
+Section: QCA
+Category: Kernel modules
+Title: QCA 802.11ac wireless cards support
+Maintainer: Qualcomm Atheros
+Source: backports-20140117.tar.gz
+Type: ipkg
+Description: This module adds support for wireless adapters based on
+QCA IEEE 802.11ac family of chipsets. For now only
+PCI is supported.
+http://wireless.kernel.org/en/users/Drivers/ath10k
+Qualcomm Atheros
+@@
+Config:
+  if PACKAGE_kmod-qca-ath10k
+	config ATH10K_AP_FIRMWARE
+		bool "Use firmware optimized for AP operation"
+		default n
+		help
+		  Say Y, if you intend to use ath10k in AP mode and
+		  want to use the 10.x firmware.
+  endif
+@@
+
+Package: kmod-qca-ath
+Menu: 1
+Submenu: QCA mac80211 Wireless Drivers
+Version: <LINUX_VERSION>+20140117-1
+Depends: @(!(TARGET_avr32||TARGET_ps3||TARGET_pxcab)||BROKEN) @PCI_SUPPORT||USB_SUPPORT||TARGET_ar71xx||TARGET_atheros +kmod-qca-mac80211
+Menu-Depends: 
+Provides: 
+Section: QCA
+Category: Kernel modules
+Title: QCA common driver part
+Maintainer: Qualcomm Atheros
+Source: backports-20140117.tar.gz
+Type: ipkg
+Description:  This module contains some common parts needed by QCA Wireless drivers.
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+  if PACKAGE_kmod-qca-ath
+	config QCA_ATH_USER_REGD
+		bool "Force Atheros drivers to respect the user's regdomain settings"
+		help
+		  Atheros' idea of regulatory handling is that the EEPROM of the card defines
+		  the regulatory limits and the user is only allowed to restrict the settings
+		  even further, even if the country allows frequencies or power levels that
+		  are forbidden by the EEPROM settings.
+
+		  Select this option if you want the driver to respect the user's decision about
+		  regulatory settings.
+
+	config PACKAGE_QCA_ATH_DEBUG
+		bool "Atheros wireless debugging"
+		help
+		  Say Y, if you want to debug atheros wireless drivers.
+		  Right now only ath9k makes use of this.
+  endif
+@@
+
+

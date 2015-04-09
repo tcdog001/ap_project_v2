@@ -1,0 +1,20 @@
+Source-Makefile: feeds/printing/net/ghostscript/Makefile
+Package: ghostscript
+Submenu: Printing
+Version: 9.06-2
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +cups +libcupsimage +libfreetype +fontconfig +libtiff +libjpeg +libpng +libexpat +lcms2 +zlib +ghostscript-fonts-std
+Menu-Depends: 
+Provides: 
+Build-Depends: ghostscript/host
+Build-Types: host
+Section: net
+Category: Network
+Title: ghostscript
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: ghostscript-9.06.tar.gz
+Type: ipkg
+Description: 	Ghostscript, an interpreter for the PostScript language and for PDF.
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+

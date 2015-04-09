@@ -1,0 +1,45 @@
+Source-Makefile: feeds/packages/lang/bootstrap/Makefile
+Package: bootstrap
+Submenu: JavaScript
+Version: 0.1-ge8a1df5-v3.0.0
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread 
+Menu-Depends: 
+Provides: 
+Section: language-javascript
+Category: Languages
+Title: Bootstrap
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: bootstrap-0.1-ge8a1df5.tar.gz
+Type: ipkg
+Description:  Bootstrap web gui interface kit.
+http://http://getbootstrap.com/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+Config:
+   	menu "overwrite package version"
+		depends on PACKAGE_bootstrap
+	config bootstrap_USE_CUSTOM_VERSION
+		depends on PACKAGE_bootstrap
+		bool "Use custom package version"
+		default n
+
+	config bootstrap_CUSTOM_VERSION
+		depends on bootstrap_USE_CUSTOM_VERSION
+		string "bootstrap version as string (default version: 0.1-ge8a1df5)"
+		default "0.1-ge8a1df5"
+
+	endmenu
+   	menu "custom source directory"
+		depends on PACKAGE_bootstrap
+	config bootstrap_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_bootstrap
+		bool "Use custom source directory"
+		default n
+	config bootstrap_CUSTOM_SOURCE_DIR
+		depends on bootstrap_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+@@
+
+

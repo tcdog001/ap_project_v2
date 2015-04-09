@@ -1,0 +1,19 @@
+Source-Makefile: feeds/packages/multimedia/mplayer/Makefile
+Package: mplayer
+Version: 1.1.1-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libbz2 +libpthread +libncurses +libmad +libmpg123 +libltdl +alsa-lib +liblzo +libSDL +libogg +libtheora +zlib +opencore-amr +libffmpeg-full
+Menu-Depends: 
+Provides: 
+Section: sound
+Category: Sound
+Title: MPlayer
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: MPlayer-1.1.1.tar.xz
+Type: ipkg
+Description: MPlayer can play most standard video formats out of the box
+and almost all others with the help of external codecs.
+http://www.mplayerhq.hu/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+

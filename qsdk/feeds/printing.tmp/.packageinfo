@@ -1,0 +1,529 @@
+Source-Makefile: feeds/printing/net/cups-bjnp/Makefile
+Package: cups-bjnp
+Submenu: Printing
+Version: 1.2-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread cups
+Menu-Depends: 
+Provides: 
+Build-Depends: cups
+Section: net
+Category: Network
+Title: BJNP protocol backend for CUPS
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-bjnp-1.2.tar.gz
+Type: ipkg
+Description: CUPS backend for the canon printers using the proprietary USB over
+IP BJNP protocol. This backend allows Cups to print over the network
+to a Canon printer. It currently supports Cups 1.2 and Cups 1.3 and
+is designed by reverse engineering.
+http://sourceforge.net/projects/cups-bjnp/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/net/cups/Makefile
+Package: cups
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcups +libcupsmime +libcupscgi +libcupsppdc +libusb-1.0 +libavahi-dbus-support +libavahi-client +libdbus +openslp +avahi-autoipd +avahi-dnsconfd
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Title: Common UNIX Printing System (daemon)
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System (daemon)
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: libcups
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +zlib +libpthread +libpng +libjpeg +libavahi-client +libavahi
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: Common UNIX Printing System - Core library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - Core library
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: libcupscgi
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcups
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: Common UNIX Printing System - CGI library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - CGI library
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: libcupsimage
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcups
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: Common UNIX Printing System - Image library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - Image library
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: libcupsmime
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcups
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: Common UNIX Printing System - MIME library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - MIME library
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: libcupsppdc
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcups +libstdcpp
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: Common UNIX Printing System - PPDC library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - PPDC library
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: cups-bsd
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcups
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Title: Common UNIX Printing System - BSD commands (old)
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - BSD commands (old)
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: cups-client
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcups +libcupsimage +libcupsmime
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Title: Common UNIX Printing System - Client commands
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - Client commands
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+Package: cups-ppdc
+Submenu: Printing
+Version: 1.6.3-3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libcupsppdc
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Title: Common UNIX Printing System - PPDC utils
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-1.6.3-source.tar.bz2
+Type: ipkg
+Description: 	Common UNIX Printing System - PPDC utils
+http://www.cups.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/net/gutenprint/Makefile
+Package: gutenprint-cups
+Submenu: Printing
+Version: 5.2.9-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +cups +libcupsimage +libiconv
+Menu-Depends: 
+Provides: 
+Build-Depends: gutenprint-cups/host cups libiconv !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Build-Depends/host: libiconv/host
+Build-Types: host
+Section: net
+Category: Network
+Title: gutenprint-cups -- Gutenprint CUPS drivers
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: gutenprint-5.2.9.tar.bz2
+Type: ipkg
+Description: 	Gutenprint CUPS drivers for a wide range of Canon, Epson, HP and
+	compatible printers.
+http://gimp-print.sourceforge.net/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/net/tig/Makefile
+Package: tig
+Version: 1.2.1-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +git +libncursesw
+Menu-Depends: 
+Provides: 
+Build-Depends: libncurses libiconv !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: devel
+Category: Development
+Title: Console Git repository viewer
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: tig-1.2.1.tar.gz
+Type: ipkg
+Description: 	Tig is a git repository browser that additionally can act as a pager for output
+	from various git commands.
+http://jonas.nitro.dk/tig/releases/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/net/ghostscript/Makefile
+Package: ghostscript
+Submenu: Printing
+Version: 9.06-2
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +cups +libcupsimage +libfreetype +fontconfig +libtiff +libjpeg +libpng +libexpat +lcms2 +zlib +ghostscript-fonts-std
+Menu-Depends: 
+Provides: 
+Build-Depends: ghostscript/host
+Build-Types: host
+Section: net
+Category: Network
+Title: ghostscript
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: ghostscript-9.06.tar.gz
+Type: ipkg
+Description: 	Ghostscript, an interpreter for the PostScript language and for PDF.
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/net/openprinting-cups-filters/Makefile
+Package: openprinting-cups-filters
+Submenu: Printing
+Version: 1.0.37-2
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +cups +libcupsimage +fontconfig +libijs +libtiff +libjpeg +libpng +poppler +qpdf +glib2
+Menu-Depends: 
+Provides: 
+Section: Net
+Category: Network
+Title: OpenPrinting CUPS filters
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cups-filters-1.0.37.tar.xz
+Type: ipkg
+Description: 	CUPS filters maintained by OpenPrinting.
+	The CUPS Filters package contains backends, filters and other software that was once part of the core CUPS distribution but is no longer maintained by Apple Inc.
+http://www.openprinting.org
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/utils/fontconfig/Makefile
+Package: fontconfig
+Submenu: Printing
+Version: 2.10.91-2
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libfreetype +libexpat +libpthread
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Title: Fontconfig, configure and customize font access
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: fontconfig-2.10.91.tar.bz2
+Type: ipkg
+Description: 	The Fontconfig package contains a library and support programs used for
+        configuring and customizing font access.
+http://fontconfig.org
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/utils/zsh/Makefile
+Package: zsh
+Version: 5.0.2-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libncurses +librt
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Title: The Z shell
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: zsh-5.0.2.tar.bz2
+Type: ipkg
+Description:         Zsh is a UNIX command interpreter (shell) usable as an interactive
+        login  shell  and  as a shell script command processor. Of the standard
+        shells, zsh most closely resembles ksh but includes many enhancements.
+        Zsh has command line editing, builtin spelling correction, programmable
+        command completion, shell functions (with autoloading), a history
+        mechanism, and a host of other features.
+http://www.zsh.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/utils/qpdf/Makefile
+Package: qpdf
+Submenu: Printing
+Version: 4.0.1-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libpcre +zlib +libstdcpp
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Title: QPDF is a command-line program for transformations on PDF files.
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: qpdf-4.0.1.tar.gz
+Type: ipkg
+Description: QPDF is a command-line program that does structural, content-preserving
+transformations on PDF files. It could have been called something like pdf-to-pdf.
+It also provides  many useful capabilities to developers of PDF-producing software
+or for people who just want to look at the innards of a PDF file to learn more
+about how they work.
+http://qpdf.sourceforge.net/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/utils/poppler/Makefile
+Package: poppler
+Submenu: Printing
+Version: 0.24.1-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libpng +libtiff +libjpeg +zlib +lcms2 +fontconfig +libpthread +libfreetype +libstdcpp
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Title: Poppler PDF rendering library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: poppler-0.24.1.tar.xz
+Type: ipkg
+Description: 	Poppler is a PDF rendering library based on the xpdf-3.0 code base.
+http://poppler.freedesktop.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/libs/freetype/Makefile
+Package: libfreetype
+Version: 2.4.11-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +zlib +libbz2
+Menu-Depends: 
+Provides: 
+Build-Types: host
+Section: libs
+Category: Libraries
+Title: A free, high-quality and portable font engine
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: freetype-2.4.11.tar.bz2
+Type: ipkg
+Description:  The FreeType project is a team of volunteers who develop free,
+ portable and high-quality software solutions for digital typography.
+ They specifically target embedded systems and focus on bringing small,
+ efficient and ubiquitous products.
+http://www.freetype.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/libs/lcms2/Makefile
+Package: lcms2
+Submenu: Printing
+Version: 2.5-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libtiff +libjpeg +zlib
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: Little CMS color engine
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: lcms2-2.5.tar.gz
+Type: ipkg
+Description: 	Little CMS color engine
+http://www.littlecms.com/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/libs/libffi/Makefile
+Package: libffi
+Version: 3.0.11-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread 
+Menu-Depends: 
+Provides: 
+Build-Types: host
+Section: libs
+Category: Libraries
+Title: Foreign Function Interface (FFI) library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: libffi-3.0.11.tar.gz
+Type: ipkg
+Description: The libffi library provides a portable, high level programming interface to
+various calling conventions. This allows a programmer to call any function
+specified by a call interface description at run-time.
+
+FFI stands for Foreign Function Interface. A foreign function interface is the
+popular name for the interface that allows code written in one language to call
+code written in another language. The libffi library really only provides the
+lowest, machine dependent layer of a fully featured foreign function interface.
+A layer must exist above libffi that handles type conversions for values passed
+between the two languages.
+http://sourceware.org/libffi/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/libs/glib2/Makefile
+Package: glib2
+Version: 2.34.3-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full +zlib +libpthread +libffi
+Menu-Depends: 
+Provides: 
+Build-Depends: glib2/host libpthread zlib libintl libffi !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Build-Depends/host: libintl/host libiconv/host libffi/host
+Build-Types: host
+Section: libs
+Category: Libraries
+Title: glib 2.0
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: glib-2.34.3.tar.xz
+Type: ipkg
+Description:   The GLib library of C routines
+http://www.gtk.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/libs/libijs/Makefile
+Package: libijs
+Submenu: Printing
+Version: 0.35-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread 
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: IJS raster image transport protocol
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: ijs-0.35.tar.bz2
+Type: ipkg
+Description: 	IJS raster image transport protocol
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/fonts/ghostscript-fonts-std/Makefile
+Package: ghostscript-fonts-std
+Submenu: Printing
+Version: 8.11-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +fontconfig
+Menu-Depends: 
+Provides: 
+Section: fonts
+Category: Network
+Title: ghostscript-fonts-std
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: ghostscript-fonts-std-8.11.tar.gz
+Type: ipkg
+Description: 	Ghostscript, standard fonts.
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/fonts/liberation-fonts/Makefile
+Package: liberation-fonts
+Submenu: Printing
+Version: 2.00.1-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +fontconfig
+Menu-Depends: 
+Provides: 
+Section: fonts
+Category: Network
+Title: liberation-fonts
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: liberation-fonts-ttf-2.00.1.tar.gz
+Type: ipkg
+Description: The Liberation(tm) Fonts is a font family which aims at metric compatibility
+with Arial, Times New Roman, and Courier New. It is sponsored by Red Hat
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/fonts/ghostscript-gnu-gs-fonts/Makefile
+Package: ghostscript-gnu-gs-fonts-other
+Submenu: Printing
+Version: 6.0-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +fontconfig
+Menu-Depends: 
+Provides: 
+Section: fonts
+Category: Network
+Title: ghostscript-gnu-gs-fonts-other
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: gnu-gs-fonts-other-6.0.tar.gz
+Type: ipkg
+Description: 	Ghostscript, the 'other' standard fonts.
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/printing/fonts/ubuntu-fonts/Makefile
+Package: ubuntu-fonts
+Submenu: Printing
+Version: 0.80-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +fontconfig
+Menu-Depends: 
+Provides: 
+Section: fonts
+Category: Network
+Title: ubuntu-fonts
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: ubuntu-font-family-0.80.zip
+Type: ipkg
+Description: The Ubuntu typeface has been specially created to complement the Ubuntu tone of
+voice. It has a contemporary style and contains characteristics unique to the
+Ubuntu brand that convey a precise, reliable and free attitude.
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+

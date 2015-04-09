@@ -1,0 +1,92 @@
+Source-Makefile: feeds/wlan_10_2/qca-wifi/Makefile
+Package: kmod-qca-wifi-akronite-perf
+Menu: 1
+Prereq-Check: 1
+Version: <LINUX_VERSION>+10.2.3.31-1
+Depends: +libgcc +libc +wireless-tools +librt @(!(PACKAGE_kmod-ath&&PACKAGE_kmod-mac80211)) @TARGET_ipq806x +TARGET_ipq806x:kmod-qca-nss-drv
+Menu-Depends: 
+Provides: kmod-qca-wifi
+Build-Variant: akronite-perf
+Section: QCA
+Category: QCA Proprietary software
+Title: QCA Wireless LAN Driver
+Maintainer: Qualcomm Atheros
+Source: qca-wifi-10.2.3.31.tar.bz2
+Type: ipkg
+Description: QCA Wireless LAN Driver
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+	menu "custom source directory"
+		depends on PACKAGE_kmod-qca-wifi-akronite-perf
+	config qca-wifi_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_kmod-qca-wifi-akronite-perf
+		bool "Use custom source directory"
+		default n
+	config qca-wifi_CUSTOM_SOURCE_DIR
+		depends on qca-wifi_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+	menu "overwrite package version"
+		depends on PACKAGE_kmod-qca-wifi-akronite-perf
+	config qca-wifi_USE_CUSTOM_VERSION
+		depends on PACKAGE_kmod-qca-wifi-akronite-perf
+		bool "Use custom package version"
+		default n
+
+	config qca-wifi_CUSTOM_VERSION
+		depends on qca-wifi_USE_CUSTOM_VERSION
+		string "qca-wifi version as string (default version: 10.2.3.31)"
+		default "10.2.3.31"
+
+	endmenu
+@@
+
+Package: kmod-qca-wifi-perf
+Menu: 1
+Prereq-Check: 1
+Version: <LINUX_VERSION>+10.2.3.31-1
+Depends: +libgcc +libc +wireless-tools +librt @(!(PACKAGE_kmod-ath&&PACKAGE_kmod-mac80211)) @TARGET_ar71xx
+Menu-Depends: 
+Provides: kmod-qca-wifi
+Build-Variant: perf
+Section: QCA
+Category: QCA Proprietary software
+Title: QCA Wireless LAN Driver
+Maintainer: Qualcomm Atheros
+Source: qca-wifi-10.2.3.31.tar.bz2
+Type: ipkg
+Description: QCA Wireless LAN Driver
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+	menu "custom source directory"
+		depends on PACKAGE_kmod-qca-wifi-perf
+	config qca-wifi_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_kmod-qca-wifi-perf
+		bool "Use custom source directory"
+		default n
+	config qca-wifi_CUSTOM_SOURCE_DIR
+		depends on qca-wifi_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+	menu "overwrite package version"
+		depends on PACKAGE_kmod-qca-wifi-perf
+	config qca-wifi_USE_CUSTOM_VERSION
+		depends on PACKAGE_kmod-qca-wifi-perf
+		bool "Use custom package version"
+		default n
+
+	config qca-wifi_CUSTOM_VERSION
+		depends on qca-wifi_USE_CUSTOM_VERSION
+		string "qca-wifi version as string (default version: 10.2.3.31)"
+		default "10.2.3.31"
+
+	endmenu
+@@
+
+

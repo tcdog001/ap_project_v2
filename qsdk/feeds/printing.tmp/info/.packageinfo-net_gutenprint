@@ -1,0 +1,23 @@
+Source-Makefile: feeds/printing/net/gutenprint/Makefile
+Package: gutenprint-cups
+Submenu: Printing
+Version: 5.2.9-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +cups +libcupsimage +libiconv
+Menu-Depends: 
+Provides: 
+Build-Depends: gutenprint-cups/host cups libiconv !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Build-Depends/host: libiconv/host
+Build-Types: host
+Section: net
+Category: Network
+Title: gutenprint-cups -- Gutenprint CUPS drivers
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: gutenprint-5.2.9.tar.bz2
+Type: ipkg
+Description: 	Gutenprint CUPS drivers for a wide range of Canon, Epson, HP and
+	compatible printers.
+http://gimp-print.sourceforge.net/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+

@@ -1,0 +1,19 @@
+Source-Makefile: feeds/printing/fonts/liberation-fonts/Makefile
+Package: liberation-fonts
+Submenu: Printing
+Version: 2.00.1-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +fontconfig
+Menu-Depends: 
+Provides: 
+Section: fonts
+Category: Network
+Title: liberation-fonts
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: liberation-fonts-ttf-2.00.1.tar.gz
+Type: ipkg
+Description: The Liberation(tm) Fonts is a font family which aims at metric compatibility
+with Arial, Times New Roman, and Courier New. It is sponsored by Red Hat
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+

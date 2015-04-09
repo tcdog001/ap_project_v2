@@ -1,0 +1,45 @@
+Source-Makefile: feeds/packages/lang/angular-mocks/Makefile
+Package: angular-mocks
+Submenu: JavaScript
+Version: 0.1-gdeea515-v1.2.0-rc.3
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +angular
+Menu-Depends: 
+Provides: 
+Section: language-javascript
+Category: Languages
+Title: Angular-Mocks
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: angular-mocks-0.1-gdeea515.tar.gz
+Type: ipkg
+Description:  Fake HTTP backend implementation suitable for unit testing applications
+http://angularjs.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+Config:
+   	menu "overwrite package version"
+		depends on PACKAGE_angular-mocks
+	config angular-mocks_USE_CUSTOM_VERSION
+		depends on PACKAGE_angular-mocks
+		bool "Use custom package version"
+		default n
+
+	config angular-mocks_CUSTOM_VERSION
+		depends on angular-mocks_USE_CUSTOM_VERSION
+		string "angular-mocks version as string (default version: 0.1-gdeea515)"
+		default "0.1-gdeea515"
+
+	endmenu
+   	menu "custom source directory"
+		depends on PACKAGE_angular-mocks
+	config angular-mocks_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_angular-mocks
+		bool "Use custom source directory"
+		default n
+	config angular-mocks_CUSTOM_SOURCE_DIR
+		depends on angular-mocks_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+@@
+
+

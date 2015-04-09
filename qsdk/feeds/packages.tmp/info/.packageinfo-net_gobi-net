@@ -1,0 +1,18 @@
+Source-Makefile: feeds/packages/net/gobi-net/Makefile
+Package: kmod-usb-gobi-net
+Submenu: USB Support
+Version: <LINUX_VERSION>+2011-07-29-1026-1
+Depends: @TARGET_ipq806x +kmod-usb-net
+Menu-Depends: 
+Provides: 
+Section: kernel
+Category: Kernel modules
+Title: Kernel USB driver for GobiNet
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: GobiNet_2011-07-29-1026.tar.gz
+Type: ipkg
+Description: Kernel USB driver for GobiNet
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+

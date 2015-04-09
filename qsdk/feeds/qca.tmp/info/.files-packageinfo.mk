@@ -1,0 +1,8 @@
+$(eval $(call PackageDir,net_qca-acfg,net/qca-acfg))
+$(eval $(call PackageDir,net_qca-wrapd,net/qca-wrapd))
+$(eval $(call PackageDir,net_qca-positioning,net/qca-positioning))
+$(eval $(call PackageDir,net_qca-wifi-fw,net/qca-wifi-fw))
+$(eval $(call PackageDir,utils_art2,utils/art2))
+$(eval $(call PackageDir,utils_qca-thermald,utils/qca-thermald))
+$(eval $(call PackageDir,utils_qca-socutils,utils/qca-socutils))
+$(eval $(call PackageDir,utils_qca-spectral,utils/qca-spectral))

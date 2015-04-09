@@ -1,0 +1,18 @@
+Source-Makefile: feeds/printing/fonts/ghostscript-fonts-std/Makefile
+Package: ghostscript-fonts-std
+Submenu: Printing
+Version: 8.11-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +fontconfig
+Menu-Depends: 
+Provides: 
+Section: fonts
+Category: Network
+Title: ghostscript-fonts-std
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: ghostscript-fonts-std-8.11.tar.gz
+Type: ipkg
+Description: 	Ghostscript, standard fonts.
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+

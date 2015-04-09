@@ -1,0 +1,20 @@
+Source-Makefile: feeds/printing/utils/fontconfig/Makefile
+Package: fontconfig
+Submenu: Printing
+Version: 2.10.91-2
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libfreetype +libexpat +libpthread
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Title: Fontconfig, configure and customize font access
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: fontconfig-2.10.91.tar.bz2
+Type: ipkg
+Description: 	The Fontconfig package contains a library and support programs used for
+        configuring and customizing font access.
+http://fontconfig.org
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+

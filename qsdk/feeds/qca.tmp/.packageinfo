@@ -1,0 +1,330 @@
+Source-Makefile: feeds/qca/net/qca-acfg/Makefile
+Package: qca-acfg
+Version: 10.2.3.31-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread kmod-qca-wifi @(!(PACKAGE_hostapd))
+Menu-Depends: 
+Provides: 
+Build-Depends: qca-wifi
+Section: QCA
+Category: QCA Proprietary software
+Title: QCA Configuration Utility
+Maintainer: Qualcomm Atheros
+Source: qca-acfg-10.2.3.31.tar.bz2
+Type: ipkg
+Description:  QCA configuration utility provides a set of library
+ API's through which user applications can configure
+ and register events for wifi driver and hostap
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+	menu "custom source directory"
+		depends on PACKAGE_qca-acfg
+	config qca-acfg_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_qca-acfg
+		bool "Use custom source directory"
+		default n
+	config qca-acfg_CUSTOM_SOURCE_DIR
+		depends on qca-acfg_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+	menu "overwrite package version"
+		depends on PACKAGE_qca-acfg
+	config qca-acfg_USE_CUSTOM_VERSION
+		depends on PACKAGE_qca-acfg
+		bool "Use custom package version"
+		default n
+
+	config qca-acfg_CUSTOM_VERSION
+		depends on qca-acfg_USE_CUSTOM_VERSION
+		string "qca-acfg version as string (default version: 10.2.3.31)"
+		default "10.2.3.31"
+
+	endmenu
+@@
+
+
+Source-Makefile: feeds/qca/net/qca-wrapd/Makefile
+Package: qca-wrapd
+Version: 10.2.3.31-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread qca-hostap @(!(PACKAGE_hostapd))
+Menu-Depends: 
+Provides: 
+Build-Depends: qca-hostap
+Section: QCA
+Category: QCA Proprietary software
+Title: QCA wrapd daemon
+Maintainer: Qualcomm Atheros
+Source: qca-wrapd-10.2.3.31.tar.bz2
+Type: ipkg
+Description:   User Space application to support QWRAP feature
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+	menu "custom source directory"
+		depends on PACKAGE_qca-wrapd
+	config qca-wrapd_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_qca-wrapd
+		bool "Use custom source directory"
+		default n
+	config qca-wrapd_CUSTOM_SOURCE_DIR
+		depends on qca-wrapd_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+	menu "overwrite package version"
+		depends on PACKAGE_qca-wrapd
+	config qca-wrapd_USE_CUSTOM_VERSION
+		depends on PACKAGE_qca-wrapd
+		bool "Use custom package version"
+		default n
+
+	config qca-wrapd_CUSTOM_VERSION
+		depends on qca-wrapd_USE_CUSTOM_VERSION
+		string "qca-wrapd version as string (default version: 10.2.3.31)"
+		default "10.2.3.31"
+
+	endmenu
+@@
+
+
+Source-Makefile: feeds/qca/net/qca-positioning/Makefile
+Package: qca-wpc
+Version: 10.2.2.76-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread kmod-qca-wifi +libpthread
+Menu-Depends: 
+Provides: 
+Section: QCA
+Category: QCA Proprietary software
+Title: QCA Wifi Positioning
+Maintainer: Qualcomm Atheros
+Source: qca-wpc-10.2.2.76.tar.bz2
+Type: ipkg
+Description: QCA Wifi Positioning
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+   	menu "overwrite package version"
+		depends on PACKAGE_qca-wpc
+	config qca-wpc_USE_CUSTOM_VERSION
+		depends on PACKAGE_qca-wpc
+		bool "Use custom package version"
+		default n
+
+	config qca-wpc_CUSTOM_VERSION
+		depends on qca-wpc_USE_CUSTOM_VERSION
+		string "qca-wpc version as string (default version: 10.2.2.76)"
+		default "10.2.2.76"
+
+	endmenu
+   	menu "custom source directory"
+		depends on PACKAGE_qca-wpc
+	config qca-wpc_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_qca-wpc
+		bool "Use custom source directory"
+		default n
+	config qca-wpc_CUSTOM_SOURCE_DIR
+		depends on qca-wpc_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+@@
+
+
+Source-Makefile: feeds/qca/net/qca-wifi-fw/Makefile
+Package: qca-wifi-fw
+Version: 10.2.2.78-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread 
+Menu-Depends: 
+Provides: 
+Section: QCA
+Category: QCA Proprietary software
+Title: QCA Wifi Firmware
+Maintainer: Qualcomm Atheros
+Source: qca-wifi-fw-10.2.2.78.tar.bz2
+Type: ipkg
+Description:   This package contains the qca-wifi firmware used in 10.x drivers
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+	menu "custom source directory"
+		depends on PACKAGE_qca-wifi-fw
+	config qca-wifi-fw_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_qca-wifi-fw
+		bool "Use custom source directory"
+		default n
+	config qca-wifi-fw_CUSTOM_SOURCE_DIR
+		depends on qca-wifi-fw_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+	menu "overwrite package version"
+		depends on PACKAGE_qca-wifi-fw
+	config qca-wifi-fw_USE_CUSTOM_VERSION
+		depends on PACKAGE_qca-wifi-fw
+		bool "Use custom package version"
+		default n
+
+	config qca-wifi-fw_CUSTOM_VERSION
+		depends on qca-wifi-fw_USE_CUSTOM_VERSION
+		string "qca-wifi-fw version as string (default version: 10.2.2.78)"
+		default "10.2.2.78"
+
+	endmenu
+@@
+
+
+Source-Makefile: feeds/qca/utils/art2/Makefile
+Package: kmod-art2
+Version: <LINUX_VERSION>+CS10.2v4.9.354-1
+Depends: +libpthread +libc +librt
+Menu-Depends: 
+Provides: 
+Section: QCA
+Category: QCA Proprietary software
+Title: - QCA ART Driver & tools
+Maintainer: Qualcomm Atheros
+Source: LinuxART2CS10.2v4.9.354.tar.bz2
+Type: ipkg
+Description: - QCA ART Driver & tools
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+	menu "custom source directory"
+		depends on PACKAGE_kmod-art2
+	config LinuxART2_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_kmod-art2
+		bool "Use custom source directory"
+		default n
+	config LinuxART2_CUSTOM_SOURCE_DIR
+		depends on LinuxART2_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+	menu "overwrite package version"
+		depends on PACKAGE_kmod-art2
+	config LinuxART2_USE_CUSTOM_VERSION
+		depends on PACKAGE_kmod-art2
+		bool "Use custom package version"
+		default n
+
+	config LinuxART2_CUSTOM_VERSION
+		depends on LinuxART2_USE_CUSTOM_VERSION
+		string "LinuxART2 version as string (default version: CS10.2v4.9.354)"
+		default "CS10.2v4.9.354"
+
+	endmenu
+@@
+
+
+Source-Makefile: feeds/qca/utils/qca-thermald/Makefile
+Package: qca-thermald
+Version: 1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libpthread @TARGET_ipq806x
+Menu-Depends: 
+Provides: 
+Section: QCA
+Category: QCA Proprietary software
+Title: Thermal Mitigation daemon
+Maintainer: Qualcomm Atheros
+Source: 
+Type: ipkg
+Description:   This package is IPQ Thermal Mitigation daemon.
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+  	menu "overwrite package version"
+		depends on PACKAGE_qca-thermald
+	config qca-thermald_USE_CUSTOM_VERSION
+		depends on PACKAGE_qca-thermald
+		bool "Use custom package version"
+		default n
+
+	config qca-thermald_CUSTOM_VERSION
+		depends on qca-thermald_USE_CUSTOM_VERSION
+		string "qca-thermald version as string (default version: )"
+		default ""
+
+	endmenu
+  	menu "custom source directory"
+		depends on PACKAGE_qca-thermald
+	config qca-thermald_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_qca-thermald
+		bool "Use custom source directory"
+		default n
+	config qca-thermald_CUSTOM_SOURCE_DIR
+		depends on qca-thermald_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+@@
+
+
+Source-Makefile: feeds/qca/utils/qca-socutils/Makefile
+Package: dumpregs
+Version: 1.0
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread @TARGET_ar71xx +microperl +devmem2
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Title: QCA SoC Register dumping command
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description:   Dump the SoC registers content in a user friendly way
+http://www.qca.qualcomm.com
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
+Source-Makefile: feeds/qca/utils/qca-spectral/Makefile
+Package: qca-spectral
+Version: 10.2.3.31-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread kmod-qca-wifi +libpthread
+Menu-Depends: 
+Provides: 
+Section: QCA
+Category: QCA Proprietary software
+Title: QCA Spectral Analysis
+Maintainer: Qualcomm Atheros
+Source: qca-spectral-10.2.3.31.tar.bz2
+Type: ipkg
+Description: QCA Spectral Analysis
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+   	menu "overwrite package version"
+		depends on PACKAGE_qca-spectral
+	config qca-spectral_USE_CUSTOM_VERSION
+		depends on PACKAGE_qca-spectral
+		bool "Use custom package version"
+		default n
+
+	config qca-spectral_CUSTOM_VERSION
+		depends on qca-spectral_USE_CUSTOM_VERSION
+		string "qca-spectral version as string (default version: 10.2.3.31)"
+		default "10.2.3.31"
+
+	endmenu
+   	menu "custom source directory"
+		depends on PACKAGE_qca-spectral
+	config qca-spectral_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_qca-spectral
+		bool "Use custom source directory"
+		default n
+	config qca-spectral_CUSTOM_SOURCE_DIR
+		depends on qca-spectral_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+@@
+
+

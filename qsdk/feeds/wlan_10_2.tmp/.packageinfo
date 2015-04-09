@@ -1,0 +1,209 @@
+Source-Makefile: feeds/wlan_10_2/qca-wifi/Makefile
+Package: kmod-qca-wifi-akronite-perf
+Menu: 1
+Prereq-Check: 1
+Version: <LINUX_VERSION>+10.2.3.31-1
+Depends: +libgcc +libc +wireless-tools +librt @(!(PACKAGE_kmod-ath&&PACKAGE_kmod-mac80211)) @TARGET_ipq806x +TARGET_ipq806x:kmod-qca-nss-drv
+Menu-Depends: 
+Provides: kmod-qca-wifi
+Build-Variant: akronite-perf
+Section: QCA
+Category: QCA Proprietary software
+Title: QCA Wireless LAN Driver
+Maintainer: Qualcomm Atheros
+Source: qca-wifi-10.2.3.31.tar.bz2
+Type: ipkg
+Description: QCA Wireless LAN Driver
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+	menu "custom source directory"
+		depends on PACKAGE_kmod-qca-wifi-akronite-perf
+	config qca-wifi_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_kmod-qca-wifi-akronite-perf
+		bool "Use custom source directory"
+		default n
+	config qca-wifi_CUSTOM_SOURCE_DIR
+		depends on qca-wifi_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+	menu "overwrite package version"
+		depends on PACKAGE_kmod-qca-wifi-akronite-perf
+	config qca-wifi_USE_CUSTOM_VERSION
+		depends on PACKAGE_kmod-qca-wifi-akronite-perf
+		bool "Use custom package version"
+		default n
+
+	config qca-wifi_CUSTOM_VERSION
+		depends on qca-wifi_USE_CUSTOM_VERSION
+		string "qca-wifi version as string (default version: 10.2.3.31)"
+		default "10.2.3.31"
+
+	endmenu
+@@
+
+Package: kmod-qca-wifi-perf
+Menu: 1
+Prereq-Check: 1
+Version: <LINUX_VERSION>+10.2.3.31-1
+Depends: +libgcc +libc +wireless-tools +librt @(!(PACKAGE_kmod-ath&&PACKAGE_kmod-mac80211)) @TARGET_ar71xx
+Menu-Depends: 
+Provides: kmod-qca-wifi
+Build-Variant: perf
+Section: QCA
+Category: QCA Proprietary software
+Title: QCA Wireless LAN Driver
+Maintainer: Qualcomm Atheros
+Source: qca-wifi-10.2.3.31.tar.bz2
+Type: ipkg
+Description: QCA Wireless LAN Driver
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+	menu "custom source directory"
+		depends on PACKAGE_kmod-qca-wifi-perf
+	config qca-wifi_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_kmod-qca-wifi-perf
+		bool "Use custom source directory"
+		default n
+	config qca-wifi_CUSTOM_SOURCE_DIR
+		depends on qca-wifi_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+	menu "overwrite package version"
+		depends on PACKAGE_kmod-qca-wifi-perf
+	config qca-wifi_USE_CUSTOM_VERSION
+		depends on PACKAGE_kmod-qca-wifi-perf
+		bool "Use custom package version"
+		default n
+
+	config qca-wifi_CUSTOM_VERSION
+		depends on qca-wifi_USE_CUSTOM_VERSION
+		string "qca-wifi version as string (default version: 10.2.3.31)"
+		default "10.2.3.31"
+
+	endmenu
+@@
+
+
+Source-Makefile: feeds/wlan_10_2/qca-hostap/Makefile
+Package: qca-hostap
+Version: 10.2.3.31-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread kmod-qca-wifi @(!(PACKAGE_hostapd))
+Menu-Depends: 
+Provides: 
+Build-Variant: default
+Build-Depends: qca-wifi
+Section: QCA
+Category: QCA Proprietary software
+Title: Hostap authenticator
+Maintainer: Qualcomm Atheros
+Source: qca-hostap-10.2.3.31.tar.bz2
+Type: ipkg
+Description:  This package contains the IEEE 802.1x/WPA/EAP/RADIUS Authenticator.
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+	menu "custom source directory"
+		depends on PACKAGE_qca-hostap
+	config qca-hostap_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_qca-hostap
+		bool "Use custom source directory"
+		default n
+	config qca-hostap_CUSTOM_SOURCE_DIR
+		depends on qca-hostap_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+	menu "overwrite package version"
+		depends on PACKAGE_qca-hostap
+	config qca-hostap_USE_CUSTOM_VERSION
+		depends on PACKAGE_qca-hostap
+		bool "Use custom package version"
+		default n
+
+	config qca-hostap_CUSTOM_VERSION
+		depends on qca-hostap_USE_CUSTOM_VERSION
+		string "qca-hostap version as string (default version: 10.2.3.31)"
+		default "10.2.3.31"
+
+	endmenu
+@@
+
+Package: qca-wpa-supplicant
+Version: 10.2.3.31-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread kmod-qca-wifi @(!(PACKAGE_wpa-supplicant))
+Menu-Depends: 
+Provides: 
+Build-Variant: supplicant-default
+Build-Depends: qca-wifi
+Section: QCA
+Category: QCA Proprietary software
+Title: WPA Supplicant
+Maintainer: Qualcomm Atheros
+Source: qca-hostap-10.2.3.31.tar.bz2
+Type: ipkg
+Description: WPA Supplicant
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+
+Package: qca-wpa-supplicant-macsec
+Version: 10.2.3.31-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread kmod-qca-wifi @(!(PACKAGE_wpa-supplicant)) +TARGET_ipq806x:kmod-qca-nss-macsec
+Menu-Depends: 
+Provides: 
+Build-Variant: supplicant-macsec
+Build-Depends: qca-wifi
+Section: QCA
+Category: QCA Proprietary software
+Title: WPA Supplicant (MACSEC)
+Maintainer: Qualcomm Atheros
+Source: qca-hostap-10.2.3.31.tar.bz2
+Type: ipkg
+Description: WPA Supplicant (MACSEC)
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+
+Package: qca-hostapd-cli
+Version: 10.2.3.31-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread qca-hostap
+Menu-Depends: 
+Provides: 
+Build-Depends: qca-wifi
+Section: QCA
+Category: QCA Proprietary software
+Title: Hostap authenticator command line interface
+Maintainer: Qualcomm Atheros
+Source: qca-hostap-10.2.3.31.tar.bz2
+Type: ipkg
+Description:  This package contains a command line utility to control the
+ IEEE 802.1x/WPA/EAP/RADIUS Authenticator.
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+
+Package: qca-wpa-cli
+Version: 10.2.3.31-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread @PACKAGE_qca-wpa-supplicant||PACKAGE_qca-wpa-supplicant-macsec
+Menu-Depends: 
+Provides: 
+Build-Depends: qca-wifi
+Section: QCA
+Category: QCA Proprietary software
+Title: WPA Supplicant command line interface
+Maintainer: Qualcomm Atheros
+Source: qca-hostap-10.2.3.31.tar.bz2
+Type: ipkg
+Description: WPA Supplicant command line interface
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+
+

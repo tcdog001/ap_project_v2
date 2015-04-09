@@ -1,0 +1,23 @@
+Source-Makefile: feeds/printing/utils/qpdf/Makefile
+Package: qpdf
+Submenu: Printing
+Version: 4.0.1-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libpcre +zlib +libstdcpp
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Title: QPDF is a command-line program for transformations on PDF files.
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: qpdf-4.0.1.tar.gz
+Type: ipkg
+Description: QPDF is a command-line program that does structural, content-preserving
+transformations on PDF files. It could have been called something like pdf-to-pdf.
+It also provides  many useful capabilities to developers of PDF-producing software
+or for people who just want to look at the innards of a PDF file to learn more
+about how they work.
+http://qpdf.sourceforge.net/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+

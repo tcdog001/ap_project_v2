@@ -1,0 +1,19 @@
+Source-Makefile: feeds/packages/utils/hiredis/Makefile
+Package: hiredis
+Submenu: database
+Version: bf161d996fcab9cf351b2fdb851a9db5f275103b-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread 
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: hiredis
+Maintainer: Cristian Prundeanu <c.p@qca.qualcomm.com>
+Source: bf161d996fcab9cf351b2fdb851a9db5f275103b.tar.gz
+Type: ipkg
+Description: hiredis
+https://github.com/redis/hiredis
+Cristian Prundeanu <c.p@qca.qualcomm.com>
+@@
+
+

@@ -1,0 +1,47 @@
+Source-Makefile: feeds/qca/net/qca-acfg/Makefile
+Package: qca-acfg
+Version: 10.2.3.31-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread kmod-qca-wifi @(!(PACKAGE_hostapd))
+Menu-Depends: 
+Provides: 
+Build-Depends: qca-wifi
+Section: QCA
+Category: QCA Proprietary software
+Title: QCA Configuration Utility
+Maintainer: Qualcomm Atheros
+Source: qca-acfg-10.2.3.31.tar.bz2
+Type: ipkg
+Description:  QCA configuration utility provides a set of library
+ API's through which user applications can configure
+ and register events for wifi driver and hostap
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+	menu "custom source directory"
+		depends on PACKAGE_qca-acfg
+	config qca-acfg_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_qca-acfg
+		bool "Use custom source directory"
+		default n
+	config qca-acfg_CUSTOM_SOURCE_DIR
+		depends on qca-acfg_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+	menu "overwrite package version"
+		depends on PACKAGE_qca-acfg
+	config qca-acfg_USE_CUSTOM_VERSION
+		depends on PACKAGE_qca-acfg
+		bool "Use custom package version"
+		default n
+
+	config qca-acfg_CUSTOM_VERSION
+		depends on qca-acfg_USE_CUSTOM_VERSION
+		string "qca-acfg version as string (default version: 10.2.3.31)"
+		default "10.2.3.31"
+
+	endmenu
+@@
+
+

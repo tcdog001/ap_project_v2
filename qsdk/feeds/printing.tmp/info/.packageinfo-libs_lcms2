@@ -1,0 +1,19 @@
+Source-Makefile: feeds/printing/libs/lcms2/Makefile
+Package: lcms2
+Submenu: Printing
+Version: 2.5-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libtiff +libjpeg +zlib
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: Little CMS color engine
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: lcms2-2.5.tar.gz
+Type: ipkg
+Description: 	Little CMS color engine
+http://www.littlecms.com/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+

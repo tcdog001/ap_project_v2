@@ -1,0 +1,8 @@
+net/qca-acfg
+net/qca-wrapd
+net/qca-positioning
+net/qca-wifi-fw
+utils/art2
+utils/qca-thermald
+utils/qca-socutils
+utils/qca-spectral

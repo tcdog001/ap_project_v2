@@ -1,0 +1,44 @@
+Source-Makefile: feeds/qca/utils/qca-thermald/Makefile
+Package: qca-thermald
+Version: 1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libpthread @TARGET_ipq806x
+Menu-Depends: 
+Provides: 
+Section: QCA
+Category: QCA Proprietary software
+Title: Thermal Mitigation daemon
+Maintainer: Qualcomm Atheros
+Source: 
+Type: ipkg
+Description:   This package is IPQ Thermal Mitigation daemon.
+http://www.qca.qualcomm.com
+Qualcomm Atheros
+@@
+Config:
+  	menu "overwrite package version"
+		depends on PACKAGE_qca-thermald
+	config qca-thermald_USE_CUSTOM_VERSION
+		depends on PACKAGE_qca-thermald
+		bool "Use custom package version"
+		default n
+
+	config qca-thermald_CUSTOM_VERSION
+		depends on qca-thermald_USE_CUSTOM_VERSION
+		string "qca-thermald version as string (default version: )"
+		default ""
+
+	endmenu
+  	menu "custom source directory"
+		depends on PACKAGE_qca-thermald
+	config qca-thermald_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_qca-thermald
+		bool "Use custom source directory"
+		default n
+	config qca-thermald_CUSTOM_SOURCE_DIR
+		depends on qca-thermald_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+@@
+
+

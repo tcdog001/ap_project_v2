@@ -1,0 +1,45 @@
+Source-Makefile: feeds/packages/lang/angular/Makefile
+Package: angular
+Submenu: JavaScript
+Version: 0.1-gffab5c4-v1.2.0-rc.2
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread 
+Menu-Depends: 
+Provides: 
+Section: language-javascript
+Category: Languages
+Title: AngularJS web kit
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: angular-0.1-gffab5c4.tar.gz
+Type: ipkg
+Description:   AngularJS web kit
+http://angularjs.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+Config:
+   	menu "overwrite package version"
+		depends on PACKAGE_angular
+	config angular_USE_CUSTOM_VERSION
+		depends on PACKAGE_angular
+		bool "Use custom package version"
+		default n
+
+	config angular_CUSTOM_VERSION
+		depends on angular_USE_CUSTOM_VERSION
+		string "angular version as string (default version: 0.1-gffab5c4)"
+		default "0.1-gffab5c4"
+
+	endmenu
+   	menu "custom source directory"
+		depends on PACKAGE_angular
+	config angular_USE_CUSTOM_SOURCE_DIR
+		depends on PACKAGE_angular
+		bool "Use custom source directory"
+		default n
+	config angular_CUSTOM_SOURCE_DIR
+		depends on angular_USE_CUSTOM_SOURCE_DIR
+		string "Custom source directory"
+		default ""
+	endmenu
+@@
+
+

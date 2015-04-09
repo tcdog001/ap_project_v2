@@ -1,0 +1,19 @@
+Source-Makefile: feeds/printing/utils/poppler/Makefile
+Package: poppler
+Submenu: Printing
+Version: 0.24.1-1
+Depends: +libc +USE_EGLIBC:librt +USE_EGLIBC:libpthread +libpng +libtiff +libjpeg +zlib +lcms2 +fontconfig +libpthread +libfreetype +libstdcpp
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Title: Poppler PDF rendering library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: poppler-0.24.1.tar.xz
+Type: ipkg
+Description: 	Poppler is a PDF rendering library based on the xpdf-3.0 code base.
+http://poppler.freedesktop.org/
+OpenWrt Developers Team <openwrt-devel@openwrt.org>
+@@
+
+
