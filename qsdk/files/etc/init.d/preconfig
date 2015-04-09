@@ -1,0 +1,47 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+kes_service() {
+
+	echo "**************** insmod kes.ko"
+	
+if [ -f /proc/kes_debug_switch ] && [ -f /proc/kes_dmsg_switch ];then
+	cat /proc/kes_dmsg > /tmp/kes_dmsg.log
+	cat /proc/kes_debug > /tmp/kes_debug.log
+	cat /proc/kes_traps > /tmp/kes_traps.log
+	echo 1 > /proc/kes_dmsg_switch
+	echo 1 > /proc/kes_debug_switch
+else
+	touch /tmp/kes_load_failed
+fi
+
+}
+
+
+
+check_upgrade_flag()
+{
+	SYSTEM_START="/etc/.system/upgrade_flag" > /dev/null 2>&1
+	if [ "$SYSTEM_START" = "upgrade" ] ;then
+		
+		echo "normal" > /etc/.system/upgrade_flag
+		/sbin/auto-sysupgrade
+	fi
+
+
+}
+
+start() {
+	local err=0
+	#kes_service
+	
+	/usr/bin/partool -part mtd2 -new system.state ok; err=$?
+	[[ ${err} -ne 0 ]] && /usr/bin/partool -part mtd2 -empty
+	/usr/bin/partool -part mtd2 -new system.failed_count 0; err=$?
+	[[ ${err} -ne 0 ]] && /usr/bin/partool -part mtd2 -empty	
+
+	check_upgrade_flag
+	
+	
+}
