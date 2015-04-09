@@ -80,6 +80,7 @@ define Host/Configure
 		-e 's,^.*UCLIBC_HAS_SHADOW.*,UCLIBC_HAS_SHADOW=$(if $(CONFIG_SHADOW_PASSWORDS),y,n),g' \
 		-e 's,^.*UCLIBC_HAS_LOCALE.*,UCLIBC_HAS_LOCALE=$(if $(CONFIG_BUILD_NLS),y,n),g' \
 		$(HOST_BUILD_DIR)/.config.new
+	$(SED) 's,^# UCLIBC_HAS_BACKTRACE is not set,UCLIBC_HAS_BACKTRACE=y,' $(TOPDIR)/toolchain/uClibc/config-0.9.33.2/common
 	cmp -s $(HOST_BUILD_DIR)/.config.new $(HOST_BUILD_DIR)/.config.last || { \
 		cp $(HOST_BUILD_DIR)/.config.new $(HOST_BUILD_DIR)/.config && \
 		$(MAKE) -C $(HOST_BUILD_DIR) oldconfig KBUILD_HAVE_NLS= HOSTCFLAGS="-DKBUILD_NO_NLS" && \

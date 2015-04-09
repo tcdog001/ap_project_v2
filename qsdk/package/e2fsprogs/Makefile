@@ -53,7 +53,7 @@ endef
 
 define Package/libcom_err
 $(call Package/e2fsprogs/Default)
-  DEPENDS:=+libpthread
+  DEPENDS:=+libpthread +libubacktrace
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=Common error description library
