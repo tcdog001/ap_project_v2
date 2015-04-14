@@ -1,0 +1,170 @@
+diff -Naur a/arch/mips/ath79/clock.c b/arch/mips/ath79/clock.c
+--- a/arch/mips/ath79/clock.c	2015-04-10 10:21:47.000000000 -0400
++++ b/arch/mips/ath79/clock.c	2015-04-14 17:36:08.000000000 -0400
+@@ -302,10 +302,12 @@
+ 	u32 bootstrap;
+ 
+ 	bootstrap = ath79_reset_rr(QCA953X_RESET_REG_BOOTSTRAP);
+-	if (bootstrap &	QCA953X_BOOTSTRAP_REF_CLK_40)
+-		ath79_ref_clk.rate = 40 * 1000 * 1000;
+-	else
+-		ath79_ref_clk.rate = 25 * 1000 * 1000;
++/**modify by autelan
++**	if (bootstrap &	QCA953X_BOOTSTRAP_REF_CLK_40)
++*		ath79_ref_clk.rate = 40 * 1000 * 1000;
++*	else
++**/
++	ath79_ref_clk.rate = 25 * 1000 * 1000;
+ 
+ 	pll = ath79_pll_rr(QCA953X_PLL_CPU_CONFIG_REG);
+ 	out_div = (pll >> QCA953X_PLL_CPU_CONFIG_OUTDIV_SHIFT) &
+diff -Naur a/arch/mips/ath79/mach-ap147.c b/arch/mips/ath79/mach-ap147.c
+--- a/arch/mips/ath79/mach-ap147.c	2015-04-10 09:49:35.000000000 -0400
++++ b/arch/mips/ath79/mach-ap147.c	2015-04-14 17:41:38.000000000 -0400
+@@ -17,6 +17,8 @@
+  *
+  */
+ 
++#include <linux/pci.h>
++#include <linux/phy.h>
+ #include <linux/platform_device.h>
+ #include <linux/ath9k_platform.h>
+ #include <linux/ar8216_platform.h>
+@@ -24,27 +26,34 @@
+ #include <asm/mach-ath79/ar71xx_regs.h>
+ 
+ #include "common.h"
++#include "dev-ap9x-pci.h"
+ #include "dev-eth.h"
+ #include "dev-gpio-buttons.h"
+ #include "dev-leds-gpio.h"
+ #include "dev-m25p80.h"
++#include "dev-nfc.h"
+ #include "dev-spi.h"
+ #include "dev-usb.h"
+ #include "dev-wmac.h"
+ #include "machtypes.h"
+ #include "pci.h"
++#include <linux/i2c.h> //add by autelan
++#include <linux/i2c-gpio.h> //add by autelan
++#include <linux/i2c/pca953x.h> //add by autelan
+ 
+-#define AP147_GPIO_LED_WLAN		12
+-#define AP147_GPIO_LED_WPS		13
+-#define AP147_GPIO_LED_STATUS		13
+-
+-#define AP147_GPIO_LED_WAN		4
+-#define AP147_GPIO_LED_LAN1		16
+-#define AP147_GPIO_LED_LAN2		15
+-#define AP147_GPIO_LED_LAN3		14
+-#define AP147_GPIO_LED_LAN4		11
++#define AP147_GPIO_LED_WLAN_2G	13
++#define AP147_GPIO_LED_WLAN_5G	17
++#define AP147_GPIO_BTN_RESET	14
+ 
+-#define AP147_GPIO_BTN_WPS		17
++
++
++#define AP147_GPIO_LED_LAN1		11
++#define AP147_GPIO_LED_LAN2		12
++
++#define AP147_GPIO_LED_LAN3		15
++#define AP147_GPIO_LED_LAN4		4
++
++#define AP147_GPIO_BTN_WPS		16
+ 
+ #define AP147_KEYS_POLL_INTERVAL	20	/* msecs */
+ #define AP147_KEYS_DEBOUNCE_INTERVAL	(3 * AP147_KEYS_POLL_INTERVAL)
+@@ -52,22 +61,53 @@
+ #define AP147_MAC0_OFFSET		0
+ #define AP147_MAC1_OFFSET		6
+ #define AP147_WMAC_CALDATA_OFFSET	0x1000
++// add by autelan20150319
++#define AP147_PCIE_CALDATA_OFFSET	0x5000
+ 
+ static struct gpio_led ap147_leds_gpio[] __initdata = {
+ 	{
+-		.name		= "ap147:green:status",
+-		.gpio		= AP147_GPIO_LED_STATUS,
++		.name		= "ap147:green:wlan-2g",
++		.gpio		= AP147_GPIO_LED_WLAN_2G,
++		.active_low	= 1,
++	},
++	{
++		.name		= "ap147:green:wlan-5g",
++		.gpio		= AP147_GPIO_LED_WLAN_5G,
++		.active_low	= 1,
++	},
++	{
++		.name		= "ap147:green:lan2",
++		.gpio		= AP147_GPIO_LED_LAN2,
+ 		.active_low	= 1,
+ 	},
+ 	{
+-		.name		= "ap147:green:wlan",
+-		.gpio		= AP147_GPIO_LED_WLAN,
++		.name		= "ap147:green:lan1",
++		.gpio		= AP147_GPIO_LED_LAN1,
+ 		.active_low	= 1,
+-	}
++	},
++	{
++		.name		= "ap147:green:rsv2",
++		.gpio		= AP147_GPIO_LED_LAN4,
++		.active_low	= 1,
++	},
++	{
++		.name		= "ap147:green:rsv1",
++		.gpio		= AP147_GPIO_LED_LAN3,
++		.active_low	= 1,
++	},
+ };
+ 
+ static struct gpio_keys_button ap147_gpio_keys[] __initdata = {
+ 	{
++		.desc           = "reset",
++		.type           = EV_KEY,
++		.code           = KEY_RESTART,
++		.debounce_interval = AP147_KEYS_DEBOUNCE_INTERVAL,
++		.gpio           = AP147_GPIO_BTN_RESET,
++		.active_low     = 1,
++	},
++#if 0	
++	{
+ 		.desc		= "WPS button",
+ 		.type		= EV_KEY,
+ 		.code		= KEY_WPS_BUTTON,
+@@ -75,18 +115,16 @@
+ 		.gpio		= AP147_GPIO_BTN_WPS,
+ 		.active_low	= 1,
+ 	},
++#endif
+ };
+ 
+ static void __init ap147_gpio_led_setup(void)
+ {
+-	ath79_gpio_direction_select(AP147_GPIO_LED_WAN, true);
+ 	ath79_gpio_direction_select(AP147_GPIO_LED_LAN1, true);
+ 	ath79_gpio_direction_select(AP147_GPIO_LED_LAN2, true);
+ 	ath79_gpio_direction_select(AP147_GPIO_LED_LAN3, true);
+ 	ath79_gpio_direction_select(AP147_GPIO_LED_LAN4, true);
+ 
+-	ath79_gpio_output_select(AP147_GPIO_LED_WAN,
+-			QCA953X_GPIO_OUT_MUX_LED_LINK5);
+ 	ath79_gpio_output_select(AP147_GPIO_LED_LAN1,
+ 			QCA953X_GPIO_OUT_MUX_LED_LINK1);
+ 	ath79_gpio_output_select(AP147_GPIO_LED_LAN2,
+@@ -112,9 +150,12 @@
+ 	ap147_gpio_led_setup();
+ 
+ 	ath79_register_usb();
+-	ath79_register_pci();
++// del by autelan20150319
++//	ath79_register_pci();
+ 
+ 	ath79_register_wmac(art + AP147_WMAC_CALDATA_OFFSET, NULL);
++// add by autelan20150319
++	ap91_pci_init(art + AP147_PCIE_CALDATA_OFFSET, NULL);
+ 
+ 	ath79_register_mdio(0, 0x0);
+ 	ath79_register_mdio(1, 0x0);
