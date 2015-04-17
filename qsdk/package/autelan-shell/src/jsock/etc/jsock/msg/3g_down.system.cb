@@ -1,0 +1,31 @@
+#!/bin/bash
+
+. ${__ROOTFS__}/etc/jsock/msg/msg.in
+
+#
+# ap==>md, callback on md
+#
+#$1:body...
+#
+main() {
+    local body="$*"
+    local self="$(basename $0)"
+
+	jsock_md_recive_check || {
+		return ${e_bad_board}
+	}
+
+    echo ${LINK_DOWN} > ${file_status_3g}
+
+    jmsg_logger "recive message:${self%%.*}, body:${body}"
+#    echo "recive message:${self%%.*}, body:${body}" >> /tmp/mytest.log
+#   mv /etc/dnsmasq.conf /etc/dnsmasq.conf.bak 2>/dev/null
+    /bin/cp /etc/dnsmasq.conf.3gdown /etc/dnsmasq.conf 2>/dev/null
+    /bin/chmod 777 /etc/dnsmasq.conf 2>/dev/null
+#   /bin/chmod 777 /etc/dnsmasq.conf.bak 2>/dev/null
+    /bin/chmod 777 /etc/dnsmasq.conf.3gdown 2>/dev/null
+    /usr/bin/killall dnsmasq 2>/dev/null
+    /bin/dnsmasq & 2>/dev/null
+}
+
+main "$@"

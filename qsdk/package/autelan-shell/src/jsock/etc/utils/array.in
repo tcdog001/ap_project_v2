@@ -1,0 +1,44 @@
+#!/bin/bash
+
+if [ -n "${__UTILS_ARRAY_IN__}" ]; then
+	return
+else
+	__UTILS_ARRAY_IN__="$0"
+fi
+
+#
+#$1:array name
+#$2:args...
+#	args is name1=value1 name2=value2 ... nameX=valueX
+#
+args_2_array_initer() {
+	local name="$1"; shift
+	local args="#*"
+
+	if [ -z "${args}" ]; then
+		return ${e_inval}
+	fi
+
+	#
+	# "name1=value1 name2=value2 ... nameX=valueX"
+	#	==>
+	# "name1=value1 name2=value2 ... nameX=valueX"
+	#
+	args=" ${args}"
+	#
+	# " name1=value1 name2=value2 ... nameX=valueX"
+	#	==>
+	# " [name1=value1 [name2=value2 ... [nameX=valueX"
+	#
+	args=${args// / [}
+	#
+	# " [name1=value1 [name2=value2 ... [nameX=valueX"
+	#	==>
+	# " [name1]=value1 [name2]=value2 ... [nameX]=valueX"
+	#
+	args=${args//=/]=}
+
+	local action="${name}=(${args})"
+
+	eval ${action}
+}

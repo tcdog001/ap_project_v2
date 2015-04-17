@@ -1,0 +1,25 @@
+# makefile for newLISP v.10.x.x on LINUX with readline support
+#
+# Note, that readline support may require different libraries on different OSs
+# 
+
+OBJS = newlisp.o nl-symbol.o nl-math.o nl-list.o nl-liststr.o nl-string.o nl-filesys.o \
+	nl-sock.o nl-import.o nl-xml-json.o nl-web.o nl-matrix.o nl-debug.o pcre.o
+
+#CFLAGS = -m32 -Wall -Wno-strict-aliasing -Wno-long-long -c -O2 -g -DLINUX
+CFLAGS = -Wall -Wno-strict-aliasing -Wno-long-long -c -O2 -g -DLINUX 
+
+CC = gcc
+
+
+default: $(OBJS)
+	$(CC) $(OBJS) -g -lm -ldl -o newlisp # for UBUNTU Debian
+#	$(CC) $(OBJS) -m32 -g -lm -ldl -lreadline -lncurses -o newlisp # other Linux Dist
+#	$(CC) $(OBJS) -m32 -g -lm -ldl -o newlisp # without readline support
+	$(STRIP) newlisp
+
+.c.o:
+	$(CC) $(CFLAGS) $<
+
+$(OBJS): primes.h protos.h makefile_linux
+

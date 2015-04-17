@@ -1,0 +1,110 @@
+#!/bin/bash
+
+if [ -n "${__UTILS_ERRNO_IN__}" ]; then
+	return
+else
+	__UTILS_ERRNO_IN__="$0"
+fi
+
+
+#
+# from linux errno-base.h
+#
+# bash reserve error code
+#	1:Catchall for general errors
+#	2:Misuse of shell builtins (according to Bash documentation)
+#	126:Command invoked cannot execute
+#	127:"command not found"
+#	128:Invalid argument to exit
+#
+#
+readonly e_common=1
+readonly e_misuse=2
+readonly e_noexec=126
+readonly e_noexist=127
+readonly e_inval=128
+
+readonly e_srch=3		# /* No such process */
+readonly e_intr=4		# /* Interrupted system call */
+readonly e_io=5		 	# /* I/O error */
+readonly e_nxio=6		# /* No such device or address */
+readonly e_2big=7		# /* Argument list too long */
+#readonly e_noexec=8	# /* Exec format error */
+readonly e_bad_json=9	# private
+readonly e_badf=9		# /* Bad file number */
+readonly e_child=10		# /* No child processes */
+readonly e_again=11		# /* Try again */
+readonly e_nomem=12		# /* Out of memory */
+readonly e_acces=13		# /* Permission denied */
+readonly e_fault=14		# /* Bad address */
+readonly e_notblk=15	# /* Block device required */
+readonly e_busy=16		# /* Device or resource busy */
+readonly e_exist=17		# /* File exists */
+readonly e_xdev=18		# /* Cross-device link */
+readonly e_nodev=19		# /* No such device */
+readonly e_notdir=20	# /* Not a directory */
+readonly e_isdir=21		# /* Is a directory */
+#readonly e_inval=22	# /* Invalid argument */
+readonly e_timeout=22	# private
+readonly e_nfile=23		# /* File table overflow */
+readonly e_mfile=24		# /* Too many open files */
+readonly e_notty=25		# /* Not a typewriter */
+readonly e_txtbsy=26	# /* Text file busy */
+readonly e_fbig=27		# /* File too large */
+readonly e_nospc=28		# /* No space left on device */
+readonly e_spipe=29		# /* Illegal seek */
+readonly e_eofs=30		# /* Read-only file system */
+readonly e_mlink=31		# /* Too many links */
+readonly e_pipe=32		# /* Broken pipe */
+readonly e_dom=33		# /* Math argument out of domain of func */
+readonly e_range=34		# /* Math result not representable */
+readonly e_perm=35	  # /* Operation not permitted */
+readonly e_noent=35	 # /* No such file or directory */
+
+readonly e_nosupport=40
+readonly e_bad_board=41
+readonly e_bad_number=42
+readonly e_bad_version=43
+readonly e_flock_failed=44
+readonly e_mount_failed=45
+readonly e_mkfs_failed=46
+readonly e_usbupgrade=47
+
+readonly e_jsock_bad_mode=50
+readonly e_jsock_bad_type=51
+readonly e_jsock_bad_name=52
+readonly e_jsock_bad_body=53
+readonly e_jsock_bad_errno=54
+readonly e_jsock_bad_stdout=55
+readonly e_jsock_bad_stderr=56
+
+readonly e_rsync_running=60
+readonly e_rsync_bad_json=61
+readonly e_rsync_bad_fsm=62
+readonly e_rsync_bad_version=63
+readonly e_rsync_no_version=64
+readonly e_rsync_abnormal=65
+readonly e_rsync_last_abnormal=66
+
+readonly e_upgrade_no_rsync=70
+readonly e_upgrade_running=71
+
+
+#
+#$1:olderr
+#$2:newerr
+#
+seterrno() {
+	local olderr=$1
+	local newerr=$2
+
+	if [ "0" == "${newerr}" ]; then
+		echo ${olderr}
+	else
+		echo ${newerr}
+	fi
+}
+
+echo_stderr() {
+	echo "$@" 1>&2
+}

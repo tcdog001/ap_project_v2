@@ -1,0 +1,28 @@
+#!/bin/bash
+
+. ${__ROOTFS__}/etc/jsock/sig/sig.in
+
+#
+#call by jsock.cb
+#
+#no args
+#
+main() {
+	# clear local keepalive check state
+	echo 0 > ${file_keepalive_state}
+
+	# check board type
+	local boardtype="$(get_board_type)"
+	# use for media
+	if [ "${boardtype}" == "md" ];then
+		${__ROOTFS__}/etc/jsock/jsig.sh asyn keepalive &
+		${__ROOTFS__}/usr/sbin/sysreboot/usr/sbin/syn_ap_time.sh &
+	fi
+
+	#
+	# read and add count
+	#
+	local count=$(readnumberfile_andadd ${file_keepalive_count} 1)
+}
+
+main "$@"

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+if [ -n "${__UTILS_JSON_IN__}" ]; then
+	return
+else
+	__UTILS_JSON_IN__="$0"
+fi
+
+#. /usr/share/libubox/jshn.sh
+
+readonly JSON_NULL_OBJECT="{}"
+readonly JSON_NULL_ARRAY="[]"
+
+#
+#$1:json...
+#
+json_check() {
+	local json="$*"
+
+	if [ -z "${json}" ]; then
+		return ${e_bad_json}
+	fi
+
+	echo "${json}" | jq '.|objects' > /dev/null 2>&1 || {
+		debug_error "bad json:${json}"
+
+		return ${e_bad_json}
+	}
+}

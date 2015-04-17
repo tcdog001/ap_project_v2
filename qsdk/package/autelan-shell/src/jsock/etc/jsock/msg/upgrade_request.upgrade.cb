@@ -1,0 +1,26 @@
+#!/bin/bash
+
+. ${__ROOTFS__}/etc/jsock/msg/msg.in
+
+#
+# md==>ap, callback on ap
+#	notify ap to upgrade
+# 		ap should
+# 			(1) download upgrade file(cannot do it in the callback)
+#			(2) after download, before do upgrade, send message:upgrade_response to md
+#
+#$1:body...
+#jmsgbody_upgrade_request="{\"version\":\"%s\",\"tftpname\":\"%s\"}"
+#
+main() {
+	local body="$*"
+	local self="$(basename $0)"
+
+	jsock_ap_recive_check || {
+		return ${e_bad_board}
+	}
+
+	${__ROOTFS__}/sbin/upgrade_handler.sh ${body} &
+}
+
+main "$@"

@@ -1,0 +1,221 @@
+#!/bin/bash
+
+if [ -n "${__UTILS_DEBUG_IN__}" ]; then
+	return
+else
+	__UTILS_DEBUG_IN__="$0"
+fi
+
+if [ -z "${DEBUG}" ]; then
+	DEBUG=$(get_file_value ${__ROOTFS__}/etc/utils/.DEBUG)
+fi
+
+if [ -z "${DEBUG_LEVEL}" ]; then
+	DEBUG_LEVEL=$(get_file_value ${__ROOTFS__}/etc/utils/.DEBUG_LEVEL __ok__,__error__,__trace__)
+fi
+
+if [ -z "${DEBUG_MODULE}" ]; then
+	DEBUG_MODULE=$(get_file_value ${__ROOTFS__}/etc/utils/.DEBUG_MODULE)
+fi
+
+if [ -z "${DEBUG_SUBMODULE}" ]; then
+	DEBUG_SUBMODULE=$(get_file_value ${__ROOTFS__}/etc/utils/.DEBUG_SUBMODULE __all__)
+fi
+
+
+#var_name_list var1 var2 var3...
+#at least one var
+debug_debug_varlist() {
+	local var_name_list=$@
+	local var_name
+
+	for var_name in ${var_name_list}; do
+		if [ -n "${DEBUG_DEBUG}" ]; then
+			do_logger "debug_debug" "${var_name}=${!var_name}"
+		fi
+	done
+}
+
+debug_debug() {
+	if [ -n "${DEBUG_DEBUG}" ]; then
+		do_logger "debug_debug" "$@"
+	fi
+}
+
+#
+#$1:global debug key
+#$2:local  debug filter
+#return:
+#	1:false, no matched
+#	0:true, matched
+debug_match() {
+	local var_name=$1
+	local filter_name=$2
+	
+	local var_value=${!var_name}
+	local filter_value=${!filter_name}
+	
+	if [[ -z "${var_value}" || -z "${filter_value}" ]]; then
+		debug_debug "${filter_name}:${filter_value} no match ${var_name}:${var_value}"
+		return 1 #false
+	fi
+	
+	if [[ "__all__" == "${var_value}" || \
+		"__all__" == "${filter_value}" || \
+		"${var_value}" != "${var_value/${filter_value}}" ]]; then
+		debug_debug "${filter_name}:${filter_value} is match ${var_name}:${var_value}"
+		return 0 #true
+	else
+		debug_debug "${filter_name}:${filter_value} no match ${var_name}:${var_value}"
+		return 1 #false
+	fi
+}
+
+
+#
+#$1:begin
+#
+debug_callers() {
+	local info
+	local all
+
+	for ((i=0; i<100000; i++)); do
+		info="$(caller ${i})"
+
+		if [ -n "${info}" ]; then
+			all="${all}${info}\n"
+		else
+			echo -e "${all}"
+			return
+		fi
+	done
+}
+
+#
+#$1:module filter
+#	__all__ ......
+#$2:submod filter
+#	__all__ ......
+#$3:level filter
+#	__ok__
+#	__error__
+#	__trace__
+#	__var__
+#	__all__
+#$@ ......
+#
+debug_echo() {
+	local module=$1
+	local sub=$2
+	local level=$3; shift 3
+
+	debug_debug_varlist \
+		DEBUG DEBUG_MODULE DEBUG_SUBMODULE DEBUG_LEVEL \
+		module sub level
+	
+	#
+	# DEBUG or DEBUG_LEVEL or DEBUG_MODULE or DEBUG_SUBMODULE off
+	#
+	if [[	-z "${DEBUG}" || \
+			-z "${DEBUG_LEVEL}" || \
+			-z "${DEBUG_MODULE}" || \
+			-z "${DEBUG_SUBMODULE}" ]]; then
+		return 0
+	fi
+	
+	debug_match DEBUG_LEVEL level || {
+		return 0
+	}
+	
+	debug_match DEBUG_MODULE module || {
+		return 0
+	}
+
+	debug_match DEBUG_SUBMODULE sub || {
+		return 0
+	}
+
+	local tag="${module}.${sub}.${level}"
+	do_logger "${tag}" "$@"
+
+	if [[ "__error__" == "${level}" || -n "${DEBUG_CALLER}" ]]; then
+		#
+		# if is error or DEBUG_CALLER is set
+		#	log all callers
+		#
+		do_logger "${tag}" "$(debug_callers)"
+	fi
+}
+
+debug_ok() {
+	debug_echo "__all__" "__all__" "__ok__" "$@"
+}
+
+debug_error() {
+	debug_echo "__all__" "__all__" "__error__" "$@"
+}
+
+debug_trace() {
+	debug_echo "__all__" "__all__" "__trace__" "$@"
+}
+
+debug_var() {
+	local varname=$1
+
+	debug_echo "__all__" "__all__" "__var__" "${var_name}=${!var_name}"
+}
+
+#
+#$1:funcname
+#$2:lineno
+#$@:var_name_list var1 var2 var3...
+#	at least one var
+#
+debug_varlist() {
+	local var_name_list=$*
+	local var_name
+
+	for var_name in ${var_name_list}; do
+		debug_var "${var_name}"
+	done
+}
+
+#
+#$1:module
+#$2:action
+#
+debug_do() {
+	local module="$1"; shift
+	local action="$*"
+	local err
+
+	${module}_debug_trace "[BEFORE]${action}"
+	eval "${action}"; err=$?
+
+	local after="...[AFTER:${err}]"
+	if [ "0" == "${err}" ]; then
+		if [ "__all__" == "${module}" ]; then
+			debug_trace "${after}"
+		else
+			${module}_debug_trace "${after}"
+		fi
+	else
+		if [ "__all__" == "${module}" ]; then
+			debug_error "${after}"
+		else
+			${module}_debug_error "${after}"
+		fi
+	fi
+
+	return ${err}
+}
+
+#
+# command || {
+#	enter here when command failed
+# }
+#
+# command && {
+#	enter here when command success
+# }
+#

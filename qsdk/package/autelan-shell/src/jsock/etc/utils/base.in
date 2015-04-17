@@ -1,0 +1,127 @@
+#!/bin/bash
+
+if [ -n "${__UTILS_BASE_IN__}" ]; then
+	return
+else
+	__UTILS_BASE_IN__="$0"
+fi
+
+do_nothing() {
+	return
+}
+
+#
+#$1:tag
+#....
+#
+do_logger() {
+	local tag="$1"; shift
+
+	logger -t "${tag}" "$*"
+}
+
+#
+#$1:tag
+#....
+#
+echo_logger() {
+	local tag="$1"; shift
+	local info="$*"
+
+	echo "${info}"
+	do_logger "${tag}" "${info}"
+}
+
+get_board_type() {
+	cat ${__ROOTFS__}/etc/boardtype
+}
+
+#
+#$1:task name
+#
+gettaskcount() {
+	local task=$1
+	local count=$(ps | grep ${task} | wc -l)
+
+	((count--))
+	echo ${count}
+
+	if ((0==count)); then
+		return ${e_noexist}
+	fi
+}
+
+
+#
+#$1:task
+#[$2:app...]
+#
+monitortask() {
+	local task=$1; shift
+	local app="$*"
+	local count
+
+	count=$(gettaskcount ${task}) || {
+		if [ -z "${app}" ]; then
+			${task} &
+		else
+			${app} &
+		fi
+
+		echo_logger "monitor" "monitor ${task} is dead, restart it"
+	}
+}
+
+#
+#$1:lockfile
+#$2:action...
+#
+exec_with_flock() {
+	local lockfile="$1"; shift
+	local action="$*"
+	local err=0
+
+	{
+		flock -n 3 || {
+			do_logger "flock" \
+				"FAILED: cannot lock ${lockfile}"
+
+			return ${e_flock_failed}
+		}
+
+		${action}; err=$?
+	} 3<>${lockfile}
+
+	return ${err}
+}
+
+#
+#$1:err
+#
+get_error_tag() {
+	local err=$1
+
+	if ((0==err)); then
+		echo "OK"
+	else
+		echo "ERROR[${err}]"
+	fi
+}
+
+#
+#$1:times
+#$2:interval
+#$3:output
+#
+display_waiting() {
+	local times=$1
+	local interval=$2
+	local output=$3
+	local i
+
+	for ((i=0; i<times; i++)); do
+		echo -e "${output}\c"
+
+		sleep ${interval}
+	done
+}

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+. ${__ROOTFS__}/etc/jsock/jsock.in
+. /sbin/autelan_functions.sh
+
+#
+#call by jsock.cb
+#
+#$1:body...
+#
+main() {
+	local body="$*"
+	local self="$(basename $0)"
+
+	jmsg_logger "recive message:${self%%.*}, body:${body}"
+	
+	#
+	# syn time with media, use for route
+	#
+	local boardtype="$(get_board_type)"
+	if [ "${boardtype}" == "ap" ];then
+		local datestr="`echo ${body} | awk -F '"' '{print $4}'`"
+		jmsg_logger "datestr:${datestr}"
+		date -s "${datestr}"
+		[[ ! -f ${SYNTIME} ]] && echo "${datestr}" > ${SYNTIME}
+	fi
+}
+
+main "$@"

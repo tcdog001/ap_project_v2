@@ -1,0 +1,17 @@
+# Put your custom commands here that should be executed once
+# the system init finished. By default this file does nothing.
+
+# this is for on_off log
+mkdir /root/onoff
+
+# this is for xinetd and json
+/etc/jsock/jsock_init.sh
+
+# check the last time drop reason
+/sbin/drop_off.sh &
+/sbin/get_time.sh &
+
+# From power began to wait 12 hours
+/sbin/auto_reboot_ap.sh &
+
+exit 0

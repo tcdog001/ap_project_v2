@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ -n "${__JSOCK_MSG_MSG_IN__}" ]; then
+	return
+else
+	__JSOCK_MSG_MSG_IN__="$0"
+fi
+
+. ${__ROOTFS__}/etc/jsock/jsock.in
+
+readonly file_register=/tmp/.register.json

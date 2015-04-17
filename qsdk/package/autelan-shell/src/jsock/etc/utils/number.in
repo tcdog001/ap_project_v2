@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if [ -n "${__UTILS_NUMBER_IN__}" ]; then
+	return
+else
+	__UTILS_NUMBER_IN__="$0"
+fi
+
+#
+#$1:number
+#
+number_check() {
+	local number=$1
+
+	expr ${number} + 1 > /dev/null 2>&1
+
+	return $?
+}

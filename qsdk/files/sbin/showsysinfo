@@ -1,0 +1,40 @@
+#!/bin/sh
+WRCPUTOOL="/usr/bin/partool -part mtd7 -show"
+COMPANY_NAME="`$WRCPUTOOL product.vendor`"
+PRODUCT_TYPE="`$WRCPUTOOL product.model`"
+SERIAL_NUMBER="`$WRCPUTOOL product.sn`"
+MAC="`$WRCPUTOOL product.mac`"
+#SOFT_VERSIONFULL="`cat /etc/version/version`"
+#SOFT_VERSION="`echo $SOFT_VERSIONFULL | awk -F '.' '{print $1"."$2}'`"
+SOFT_VERSION="`cat /etc/.version`"
+MAIN_VER="`echo $SERIAL_NUMBER | cut -b 10`"
+MAIOR_VER="`echo $SERIAL_NUMBER | cut -b 11-12`"
+HARD_VERSION="$MAIN_VER.$MAIOR_VER"
+
+NONEMAC="`echo $MAC | cut -b 1-11`"
+NONESN="`echo $SERIAL_NUMBER | cut -b 1-10`"
+NONEDEV="`echo $PRODUCT_TYPE | cut -b 1-12`"
+NONEVENDOR="`echo $COMPANY_NAME | cut -b 1-14`"
+
+if [ "$NONEVENDOR" = "product.vendor" ];then
+        COMPANY_NAME=""
+fi
+if [ $NONEMAC = "product.mac" ];then
+        MAC=""
+fi
+if [ $NONESN = "product.sn" ];then
+        SERIAL_NUMBER=""
+        HARD_VERSION=""
+fi
+if [ $NONEDEV = "product.mode" ];then
+        PRODUCT_TYPE=""
+fi
+
+#show
+echo "    Company Name:$COMPANY_NAME"
+echo "              SN:$SERIAL_NUMBER"
+echo "         AP Mode:fatap"
+echo "     Device Type:$PRODUCT_TYPE"
+echo "             MAC:$MAC"
+echo "Software Version:$SOFT_VERSION"
+echo "Hardware Version:$HARD_VERSION"

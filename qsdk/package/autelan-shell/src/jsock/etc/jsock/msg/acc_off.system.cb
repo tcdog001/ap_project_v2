@@ -1,0 +1,20 @@
+#!/bin/bash
+
+. ${__ROOTFS__}/etc/jsock/msg/msg.in
+
+#
+#call by jsock.cb
+#
+#$1:body...
+#
+
+main() {
+        local body="$*"
+        local self="$(basename $0)"
+
+        jmsg_logger "recive message:${self%%.*}, body:${body}"
+        touch /mnt/flash/rootfs_data/acc_off.txt
+        . /etc/acc_off.sh
+}
+
+main "$@"

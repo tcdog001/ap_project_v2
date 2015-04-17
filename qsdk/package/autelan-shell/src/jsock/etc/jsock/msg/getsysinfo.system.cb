@@ -1,0 +1,27 @@
+#!/bin/bash
+
+. ${__ROOTFS__}/etc/jsock/msg/msg.in
+
+#
+#call by jsock.cb
+#
+#$1:body...
+#
+main() {
+	local body="$*"
+
+	jsock_md_recive_check || {
+		return ${e_bad_board}
+	}
+
+	echo ${body} > ${file_register}
+	jmsg_logger "recive message:${self%%.*}, body:${body}"
+
+	local json=$(${__ROOTFS__}/usr/sbin/getmdinfo.sh)
+	jmsg_logger "get media json:${json}"
+
+	sed -i 's/}/,'"${json}"'}/g' ${file_register}
+	${__ROOTFS__}/etc/platform/bin/register.sh &
+}
+
+main "$@"

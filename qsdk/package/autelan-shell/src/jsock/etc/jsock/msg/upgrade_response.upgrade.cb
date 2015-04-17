@@ -1,0 +1,55 @@
+#!/bin/bash
+
+. ${__ROOTFS__}/etc/jsock/msg/msg.in
+
+#
+# ap==>md, callback on md
+#	notify md to both reboot(after delay some seconds)
+#
+#$1:body...
+#jmsgbody_upgrade_response="{\"version\":\"%s\",\"reboot_after\":\"%s\",\"mode\":\"%s\"}"
+#
+main() {
+	local body="$*"
+	local self="$(basename $0)"
+
+	jsock_md_recive_check || {
+		return ${e_bad_board}
+	}
+
+	local version="$(echo "${body}" | jq -j '.version|strings')"
+	if [ -z "${version}" ]; then
+		jmsg_debug_error "$0 bad version:${version}"
+		# no return
+	fi
+
+	local reboot_after="$(echo "${body}" | jq -j '.reboot_after|strings')"
+	if [ -z "${reboot_after}" ]; then
+		jmsg_debug_error "$0 bad reboot_after:${reboot_after}"
+
+		return ${e_rsync_bad_json}
+	else
+		number_check "${reboot_after}" || {
+			jmsg_debug_error "$0 reboot_after:${reboot_after} is not number"
+
+			return ${e_bad_number}
+		}
+	fi
+
+	local mode="$(echo "${body}" | jq -j '.mode|strings')"
+	if [ -z "${mode}" ]; then
+		mode="${upgrade_response_mode_deft}"
+	fi
+
+	if ((reboot_after>300)); then
+		jmsg_debug_error "$0 reboot_after:${reboot_after} reset to 300"
+
+		reboot_after=300
+	fi
+
+	echo_logger "upgrade_response" \
+		"ap is upgrading by mode:${mode}, system will reboot after ${reboot_after}"
+	${__ROOTFS__}/usr/sbin/sysreboot ${reboot_after} &
+}
+
+main "$@"

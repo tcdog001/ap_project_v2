@@ -1,0 +1,81 @@
+#!/bin/bash
+
+if [ -n "${__UTILS_STIMER_IN__}" ]; then
+	return
+else
+	__UTILS_STIMER_IN__="$0"
+fi
+
+readonly path_stimer_deft=${__ROOTFS__}/etc/stimerd.d
+readonly file_stimer_seq=/tmp/.stimer.seq
+readonly file_stimer_log=/tmp/.stimer.log
+readonly max_stimer_log=1000
+
+#
+#$1:path
+#
+stimer() {
+	local path=$1
+
+	if [ -z "${path}" ]; then
+		path=${path_stimer_deft}
+	fi
+
+	#
+	# get interval list
+	#
+	local list="$(ls ${path})"
+	local interval
+	local -A COUNT
+
+	#
+	# init interval COUNT
+	#
+	for interval in ${list}; do
+		COUNT[${interval}]=0
+	done
+
+	local seq=0
+	local count=0
+	for ((;;)); do
+		((seq++))
+
+		for interval in ${list}; do
+
+#			((COUNT[interval]++))
+			count=${COUNT[${interval}]}; COUNT[${interval}]=$((++count))
+			if ((count<interval)); then
+				continue
+			fi
+			COUNT[${interval}]=0
+
+			#
+			# run task in this interval
+			#
+			local task_list="$(ls ${path}/${interval})"
+			local task
+			for task in ${task_list}; do
+				local app="$(cat ${path}/${interval}/${task})"
+
+				if [ -z "${app}" ]; then
+					app=${task}
+				fi
+
+				${app} &
+
+				echo "${app} is trigger by interval:${interval} at count:${count}" \
+					>> ${file_stimer_log}
+			done
+		done
+
+		#
+		# maybe too more log, try clean it
+		#
+		local mod=$((seq%max_stimer_log))
+		if ((0==mod)); then
+			echo > ${file_stimer_log}
+		fi
+
+		sleep 1
+	done
+}

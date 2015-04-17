@@ -1,0 +1,13 @@
+service jsock
+{
+	type = UNLISTED
+	socket_type = dgram
+	protocol = udp
+	port = 9527
+	user = root
+	wait = no
+	server = /etc/jsock/jsock.cb
+	disable = no
+
+	env = TZ=UTC-8
+}

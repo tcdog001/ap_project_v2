@@ -1,0 +1,20 @@
+#!/bin/bash
+
+. ${__ROOTFS__}/etc/jsock/sig/sig.in
+
+#
+# NOT used now!!!
+#
+
+#
+#call by jsock.cb
+#
+#no args
+#
+main() {
+	local state="$(jsock_peer_state)"
+
+
+}
+
+main "$@"

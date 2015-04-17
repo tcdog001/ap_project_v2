@@ -1,0 +1,205 @@
+#!/bin/bash
+
+if [ -n "${__UTILS_FILE_IN__}" ]; then
+	return
+else
+	__UTILS_FILE_IN__="$0"
+fi
+
+#
+# basename
+# dirname
+#
+
+
+# getfilename filename
+# 	@filename: just filename, not include path
+getfilename() {
+	local filename=$1
+
+	echo "${filename%.*}" #cut short tail match ".*", then get long prefix
+}
+
+# fcom_getfilesuffix filename
+# 	@filename: just filename, not include path
+getfilesuffix() {
+	local filename=$1
+
+	echo "${filename##*.}" #cut long head match "*.", then get short suffix
+}
+
+#
+#$1:file
+#
+touchfile() {
+	local file=$1
+	local err=0
+
+	if [ ! -f "${file}" ]; then
+		mkdir -p $(dirname file) > /dev/null 2>&1; err=$?
+	fi
+
+	return ${err}
+}
+
+#
+#$1:file(include path)
+#[$2:file default value]
+#
+get_file_value() {
+	local file=$1; shift
+	local deft="$*"
+
+	if [ -f "${file}" ]; then
+		cat ${file}
+	else
+		echo ${deft}
+	fi
+}
+
+#
+#$1:file(include path)
+#$2:value ...
+#
+set_file_value() {
+	local file=$1; shift
+	local value="$*"
+	local err
+
+	touchfile ${file}; err=$?
+	if ((0!=err)); then
+		return ${err}
+	fi
+
+	echo ${value} > ${file}
+	fsync ${file}
+}
+
+#
+#$1:file(include path)
+#$2:file default value ...
+#
+getfilevalue() {
+	local file=$1; shift
+	local deft="$*"
+
+	if [ -f "${file}" ]; then
+		cat ${file}
+	else
+		set_file_value "${file}" "${deft}"
+
+		echo ${deft}
+	fi
+}
+
+#
+#$1:file
+#$2:added
+#
+readnumberfile_andadd() {
+	local file=$1
+	local added=$2
+
+	local number=$(getfilevalue ${file} 0)
+	echo ${number}
+
+	((number++))
+	set_file_value ${file} ${number}
+}
+
+#
+#get command's out(stdout) and error(stderr) infomation
+#
+#$1:array name
+#$2:funcname or cmdname
+#$3:args...
+#
+# after call,
+#	array[0] save errno
+#	array[1] save stdout infomation
+#	array[2] save stderr infomation
+#
+get_out_and_error() {
+	local arrayname="$1"
+	local callname="$2"; shift 2
+	local args="$*"
+
+	local tmpout=$(mktemp)
+	local tmperr=$(mktemp)
+	local err=0
+
+	(${callname} ${args}) >${tmpout} 2>${tmperr}; err=$?
+
+#	eval "${arrayname}=([0]=${err} [1]='$(cat ${tmpout})' [2]='$(cat ${tmperr})')"
+	eval "${arrayname}=([0]=${err} [1]='$(<${tmpout})' [2]='$(<${tmperr})')"
+
+	rm -f ${tmpout} ${tmperr}
+
+	return ${err}
+}
+
+#
+# no used, now
+#
+get_out_and_error2() {
+	local arrayname="$1"
+	local tmpout=$(mktemp)
+	local tmperr=$(mktemp)
+	local err=0
+
+	eval "\${${arrayname}[0]} >${tmpout} 2>${tmperr}; err=\$?"
+	eval "${arrayname}[1]='$(<${tmpout})'"
+	eval "${arrayname}[2]='$(<${tmperr})'"
+	eval "${arrayname}[3]=${err}"
+
+	rm -f ${tmpout} ${tmperr}
+
+	return ${err}
+}
+
+
+#
+#$1:src
+#$2:dst
+#
+LN_FILE() {
+	local src="$1"
+	local dst="$2"
+
+	ln -sf ${src} ${dst}
+}
+
+#
+#$1:src
+#$2:dst
+#
+LN_DIR() {
+	local src="$1"
+	local dst="$2"
+
+	if [ -d "${dst}" ]; then
+		rm -fr ${dst}
+	fi
+
+	ln -sf ${src} ${dst}
+}
+
+#
+#$1:src
+#$2:dst
+#
+do_dd() {
+	local src="$1"
+	local dst="$2"
+	local err=0
+
+	dd if=${src} of=${dst}; err=$?
+	if ((0!=err)); then
+		echo_logger "dd" \
+			"ERROR[${err}]: dd if=${src} of=${dst}"
+	fi
+
+	sync
+
+	return ${err}
+}

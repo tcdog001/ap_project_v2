@@ -1,0 +1,251 @@
+#!/bin/bash
+
+if [ -n "${__UTILS_VERSION_IN__}" ]; then
+	return
+else
+	__UTILS_VERSION_IN__="$0"
+fi
+
+readonly NUM_VERSION_NUMBER=4
+readonly MIN_VERSION_NUMBER=0
+readonly MAX_VERSION_NUMBER=9999
+readonly MIN_VERSION=${MIN_VERSION_NUMBER}.${MIN_VERSION_NUMBER}.${MIN_VERSION_NUMBER}.${MIN_VERSION_NUMBER}
+readonly MAX_VERSION=${MAX_VERSION_NUMBER}.${MAX_VERSION_NUMBER}.${MAX_VERSION_NUMBER}.${MAX_VERSION_NUMBER}
+
+#
+#$1:x
+#$2:y
+#
+#	return lt/gt/eq
+#
+version_number_compare() {
+	local x="$1"
+	local y="$2"
+
+	if ((x < y)); then
+		echo "lt"
+	elif ((x > y)); then
+		echo "gt"
+	else
+		echo "eq"
+	fi
+}
+
+#
+#$1:version
+#$2:sub version idx
+#
+#	version_number "a.b.c.d" 0 ==> a
+#	version_number "a.b.c.d" 1 ==> b
+#	version_number "a.b.c.d" 2 ==> c
+#	version_number "a.b.c.d" 3 ==> d
+#
+version_number() {
+	local version="$1"
+	local idx="$2"
+
+	#
+	# "a.b.c.d"==>"a b c d"
+	#
+	version="${version//./ }"
+
+	eval "local -a X=( ${version} )"
+
+	echo "${X[${idx}]}"
+}
+
+#
+#$1:version x, format a.b.c.d, a/b/c/d is number
+#$2:version y, format a.b.c.d, a/b/c/d is number
+#
+version_compare() {
+	local version_x="$1"
+	local version_y="$2"
+
+	local i
+	for ((i=0; i<NUM_VERSION_NUMBER; i++)); do
+		local x=$(version_number ${version_x} $i)
+		local y=$(version_number ${version_y} $i)
+
+		local result=$(version_number_compare ${x} ${y})
+		if [ "eq" != "${result}" ]; then
+			echo "${result}"
+
+			return
+		fi
+	done
+
+	echo "eq"
+}
+
+#
+#$1:version
+#
+version_check() {
+	local version="$1"
+	if [ -z "${version}" ]; then
+		return ${e_rsync_bad_version}
+	fi
+
+	local i
+	for ((i=0; i<NUM_VERSION_NUMBER; i++)); do
+		local x="$(version_number ${version} $i)"
+
+		if [ -z "${x}" ]; then
+			return ${e_bad_version}
+		fi
+
+		number_check ${x} || {
+			return ${e_bad_version}
+		}
+
+		if ((x > MAX_VERSION_NUMBER)); then
+			return ${e_bad_version}
+		fi
+	done
+}
+
+#
+#$1:old version
+#
+#	return new version
+#
+version_plusplus() {
+	local version="$1"
+	local new
+	local a=$(version_number ${old} 0)
+	local b=$(version_number ${old} 1)
+	local c=$(version_number ${old} 2)
+	local d=$(version_number ${old} 3)
+
+	if ((d < MAX_VERSION_NUMBER)); then
+		((d++))
+		new="${a}.${b}.${c}.${d}"
+	elif ((c < MAX_VERSION_NUMBER)); then
+		((d=0))
+		((c++))
+		new="${a}.${b}.${c}.${d}"
+	elif ((b < MAX_VERSION_NUMBER)); then
+		((d=0))
+		((c=0))
+		((b++))
+		new="${a}.${b}.${c}.${d}"
+	elif ((a < MAX_VERSION_NUMBER)); then
+		((d=0))
+		((c=0))
+		((b=0))
+		((a++))
+		new="${a}.${b}.${c}.${d}"
+	else
+		new=${MAX_VERSION}
+	fi
+
+	echo "${new}"
+}
+
+
+#
+#$1:init
+#$2:filter
+#$3:version list...
+#
+get_version_byfilter() {
+	local init="$1"
+	local filter="$2"; shift 2
+	local list="$*"
+	local acc="${init}"
+	local version
+
+	for version in ${list}; do
+		acc="$(${filter} ${version} ${acc})"
+	done
+
+	if [ "${init}" == "${acc}" ]; then
+		return ${e_noexist}
+	else
+		echo "${acc}"
+	fi
+}
+
+#
+#$1:version
+#$2:acc
+#
+min_version_filter() {
+	local version="$1"
+	local acc="$2"
+
+	if [ "lt" == "$(version_compare ${version} ${acc})" ]; then
+		echo "${version}"
+	else
+		echo "${acc}"
+	fi
+}
+
+#
+#$1:version list...
+#
+get_min_version() {
+	local list="$*"
+	local version="$(get_version_byfilter ${MAX_VERSION} min_version_filter ${list})"
+
+	echo "${version}"
+}
+
+#
+#$1:version
+#$2:acc
+#
+max_version_filter() {
+	local version="$1"
+	local acc="$2"
+
+	if [ "gt" == "$(version_compare ${version} ${acc})" ]; then
+		echo "${version}"
+	else
+		echo "${acc}"
+	fi
+}
+
+#
+#$1:version list...
+#
+get_max_version() {
+	local list="$*"
+	local version="$(get_version_byfilter ${MIN_VERSION} max_version_filter ${list})"
+
+	echo "${version}"
+}
+
+#
+#$1:filter
+#$2:version list...
+#
+get_version_count_byfilter() {
+	local filter="$1"; shift
+	local list="$*"
+	local sum=0
+	local version
+
+	for version in ${list}; do
+		local count=$(${filter} ${version})
+
+		((sum += count))
+	done
+
+	echo ${sum}
+}
+
+get_version_count_filter() {
+	echo 1
+}
+
+#
+#$1:version list...
+#
+get_version_count() {
+	local list="$*"
+	local count=$(get_version_count_byfilter get_version_count_filter ${list})
+
+	echo ${count}
+}

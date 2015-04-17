@@ -1,0 +1,34 @@
+#!/bin/bash
+
+. ${__ROOTFS__}/etc/jsock/msg/msg.in
+
+#
+# ap==>md, callback on md
+#
+#$1:body...
+#
+main() {
+    local body="$*"
+    local self="$(basename $0)"
+
+	jsock_md_recive_check || {
+		return ${e_bad_board}
+	}
+
+    echo ${LINK_UP} > ${file_status_3g}
+
+    jmsg_logger "recive message:${self%%.*}, body:${body}"
+#    echo "recive message:${self%%.*}, body:${body}" >> /tmp/mytest.log
+    /bin/cp /etc/dnsmasq.conf.3gup /etc/dnsmasq.conf 2>/dev/null
+    /bin/chmod 777 /etc/dnsmasq.conf 2>/dev/null
+    /bin/chmod 777 /etc/dnsmasq.conf.3gup 2>/dev/null
+    /usr/bin/killall dnsmasq 2>/dev/null
+    /bin/dnsmasq & 2>/dev/null
+
+	ntpclient -h cn.pool.ntp.org -s -c 1 && \
+		ntpclient -h cn.pool.ntp.org -s -c 1 &
+
+    ${__ROOTFS__}/etc/upgrade/rsync_task.sh &
+}
+
+main "$@"

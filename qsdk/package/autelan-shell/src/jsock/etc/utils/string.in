@@ -1,0 +1,45 @@
+#!/bin/bash
+
+if [ -n "${__UTILS_STRING_IN__}" ]; then
+	return
+else
+	__UTILS_STRING_IN__="$0"
+fi
+
+# getsubstring_byindex string idx sep
+#	@string, separate by sep(a char)
+#	@idx, the substring's index 
+#	@sep
+getsubstring_byindex() {
+	local car
+	local cdr=$1
+	local idx=$2
+	local sep=$3
+
+	for ((i=1; i<=${idx}; i++))
+	do
+		car=${cdr%%${sep}*}
+		cdr=${cdr#*${sep}}
+	done
+
+	echo "${car}";
+}
+
+#
+#$1:dst
+#$2:src
+#$3:sep
+#
+strcat () {
+	local dst="$1"
+	local src="$2"
+	local sep="$3"
+
+	if [ -z "${src}" ]; then
+		echo "${dst}"
+	elif [ -z "${dst}" ]; then
+		echo "${src}"
+	else
+		echo "${dst}${sep}${src}"
+	fi
+}

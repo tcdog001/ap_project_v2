@@ -1,0 +1,20 @@
+#!/bin/bash
+
+. ${__ROOTFS__}/etc/jsock/sig/sig.in
+
+#
+#call by jsock.cb
+#
+#no args
+#
+main() {
+	jsock_ap_recive_check || {
+		return ${e_bad_board}
+	}
+
+	#
+	# md will reboot, because super recover
+	#
+}
+
+main "$@"
