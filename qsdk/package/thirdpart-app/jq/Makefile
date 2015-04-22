@@ -33,7 +33,6 @@ TARGET_CFLAGS += -std=gnu99 -I$(ONIG_PATH)
 TARGET_LDFLAGS += -L$(ONIG_PATH)/.libs
 
 define Build/Configure
-	cp -f files/configure.ac $(PKG_BUILD_DIR)/
 	$(call Build/Configure/Default,--disable-docs --disable-static --enable-silent-rules)
 endef
 
