@@ -5,6 +5,7 @@
 /env
 /.config.old
 /bin
+/files/etc/.version
 /build_dir
 /staging_dir
 /tmp
