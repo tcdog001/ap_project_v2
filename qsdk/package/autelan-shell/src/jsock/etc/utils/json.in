@@ -1,0 +1,423 @@
+#!/bin/bash
+
+if [[ -z "${__UTILS_JSON_IN__}" ]]; then __UTILS_JSON_IN__=_; else return; fi
+
+. ${__ROOTFS__}/etc/utils/list.in
+. ${__ROOTFS__}/etc/utils/array.in
+
+__json_debug() {
+	if [[ -n "${__JSON_DEBUG__}" && -n "${__JSON_DEBUG_FILE__}" ]]; then
+		echo "$@" >> ${__JSON_DEBUG_FILE__}
+	fi
+}
+
+#
+#$1:json...
+#
+json_check() {
+	local json="$*"
+
+	if [[ -z "${json}" ]]; then
+		return ${e_bad_json}
+	fi
+
+	echo "${json}" | jq '.|objects' &> /dev/null || {
+		return ${e_bad_json}
+	}
+}
+
+#
+#$1:json a
+#$2:json b
+#
+__json_eq() {
+	local a="$1"
+	local b="$2"
+
+	local keys=$(echo ${a} | jq -j 'keys') || return $?
+	__json_debug "__json_eq:keys:${keys}"
+
+	local count=$(echo ${keys} | jq -j '.|length')
+	__json_debug "__json_eq:count:${count}"
+
+	local i
+	for ((i=0; i<count; i++)); do
+		local name=$(echo ${keys} | jq -j ".[${i}]")
+		__json_debug "__json_eq:name:${name}"
+
+		local type=$(echo ${a} | jq -j ".${name} | type")
+		__json_debug "__json_eq:type:${type}"
+
+		local va=$(echo ${a} | jq -j ".${name} | ${type}s")
+		__json_debug "__json_eq:va:${va}"
+
+		local vb=$(echo ${b} | jq -j ".${name} | ${type}s")
+		__json_debug "__json_eq:vb:${vb}"
+
+		case ${type} in
+		null | number | boolean | string)
+			if [[ "${va}" != "${vb}" ]]; then
+				__json_debug "__json_eq:${va}!=${vb}"
+
+				return ${e_noeq}
+			fi
+			;;
+		array | object)
+			__json_eq "${va}" "${vb}" || return $?
+			;;
+		*)
+			__json_debug "__json_eq:bad type:${type}"
+
+			return ${e_bad_json}
+			;;
+		esac
+	done
+}
+
+#
+#$1:json a
+#$2:json b
+#
+json_eq() {
+	local a="$1"
+	local b="$2"
+
+	local erra errb
+
+	json_check "${a}"; erra=$?
+	json_check "${b}"; errb=$?
+
+	if ((0==erra && 0==errb)); then
+		__json_eq "$@"
+	elif ((erra && errb)); then
+		return
+	else
+		return ${e_noeq}
+	fi
+}
+
+#
+#$1:json a
+#$2:json b
+#
+json_merge() {
+	local a="$1"; shift
+	local b="$*"
+
+	if [[ -z "${a}" ]]; then
+		echo "${b}"
+	elif [[ -z "${b}" ]]; then
+		echo "${a}"
+	else
+		echo "${a}" | jq -j ". * ${b}"
+	fi
+}
+
+#
+#$1:key
+#$2:value
+#
+__json_create_bykv() {
+	local key="$1"; shift
+	local value="$*"
+
+	printf '{"%s":"%s"}' "${key}" "${value}"
+}
+
+#
+#$1:key
+#$2:obj
+#
+__json_create_byko() {
+	local key="$1"; shift
+	local obj="$*"
+
+	printf '{"%s":%s}' "${key}" "${obj}"
+}
+
+#
+#$1:key
+#$2:value(maybe a json)
+#
+json_create_bykv() {
+	local key="$1"; shift
+	local value="$*"
+	local err
+
+	json_check "${value}"; err=$?
+	if ((0==err)); then
+		#
+		# value is json
+		#
+		echo $(__json_create_byko "${key}" "${value}")
+	else
+		echo $(__json_create_bykv "${key}" "${value}")
+	fi
+}
+
+#
+#$@:k1 v1 k2 v2 ... kn vn
+#   value maybe a json
+#
+__json_create_bykvs() {
+	local key="$1"
+	local value="$2"; shift 2
+	local first tail err
+
+	if [[ -z "${key}" ]]; then
+		return
+	fi
+
+	json_check "${value}"; err=$?
+	if ((0==err)); then
+		#
+		# value is json
+		#
+		first=$(printf '"%s":%s' "${key}" "${value}")
+	else
+		first=$(printf '"%s":"%s"' "${key}" "${value}")
+	fi
+
+	tail=$(__json_create_bykvs "$@")
+
+	if [[ -z "${tail}" ]]; then
+		echo "${first}"
+	else
+		echo "${first},${tail}"
+	fi
+}
+
+#
+#$@: k1 v1 k2 v2 ... kn vn
+#   value maybe a json
+#
+json_create_bykvs() {
+	local json
+
+	json=$(__json_create_bykvs "$@")
+
+	echo "{${json}}"
+}
+
+#
+#$1:list(reversed)
+#$2:obj
+#
+# __json_create_bylo "c b a" "obj"
+#   ==>
+# {"a":{"b":{"c":obj}}}
+#
+__json_create_bylo() {
+	local list="$1"
+	local obj="$2"
+	local new first tail
+
+	__json_debug "__json_create_bylo:list:${list}"
+	__json_debug "__json_create_bylo:obj:${obj}"
+
+	if [[ -z "${list}" ]]; then
+		echo "${obj}"
+	else
+		first="$(list_first ${list})"
+		tail="$(list_tail ${list})"
+
+		new=$(__json_create_byko "${first}" "${obj}")
+
+		echo $(__json_create_bylo "${tail}" "${new}")
+	fi
+}
+
+#
+#$1:list(reversed)
+#$2:value
+#   value(maybe a json)
+#
+# __json_create_bylv_reversed "c b a" "value"
+#   ==>
+# {"a":{"b":{"c":"value"}}}
+#
+__json_create_bylv_reversed() {
+	local list="$1"
+	local value="$2"
+	local obj first tail
+
+	__json_debug "__json_create_bylv_reversed:list:${list}"
+	__json_debug "__json_create_bylv_reversed:value:${value}"
+
+	if [[ -z "${list}" ]]; then
+		echo "${value}"
+	else
+		first="$(list_first ${list})"
+		tail="$(list_tail ${list})"
+
+		obj=$(json_create_bykv "${first}" "${value}")
+
+		echo $(__json_create_bylo "${tail}" "${obj}")
+	fi
+}
+
+#
+#$1:list
+#$2:value
+#   value(maybe a json)
+#
+# json_create_bylo "a b c" "value"
+#   ==>
+# {"a":{"b":{"c":"value"}}}
+#
+__json_create_bylv() {
+	local list="$1"; shift
+
+	__json_debug "__json_create_bylv:list:${list}"
+	echo $(__json_create_bylv_reversed "$(list_reverse ${list})" "$*")
+}
+
+#
+#$1:ifs
+#$left:k1 v1 k2 v2 ... kn vn
+#   key(maybe include ifs)
+#   value(maybe a json)
+#
+__json_create() {
+	local ifs="$1"; shift
+	local key="$1"
+	local value="$2"; shift 2
+	local list first tail
+
+	if [[ -z "${key}" ]]; then
+		return
+	fi
+
+	case "${ifs}" in
+	""|"_"|" ")
+		list=${key}
+		;;
+	*)
+		list="${key//${ifs}/ }"
+		;;
+	esac
+
+	first=$(__json_create_bylv "${list}" "${value}")
+	__json_debug "__json_create:first:${first}"
+
+	tail=$(__json_create "${ifs}" "$@")
+	__json_debug "__json_create:tail:${tail}"
+
+	echo $(json_merge "${first}" "${tail}")
+}
+
+#
+#$@:k1 v1 k2 v2 ... kn vn
+#   key(maybe include ifs)
+#   value(maybe a json)
+#
+json_create() {
+	__json_debug "json_create:$@"
+
+	echo $(__json_create / "$@")
+}
+
+#
+#$1:associative array
+#
+json_from_aa() {
+	local aa="$1"
+	local keys=$(aa_keys ${aa})
+	local json="{}"
+
+	local key
+	for key in ${keys}; do
+		local value=$(aa_get ${aa} "${key}")
+		local new=$(json_create "${key}" "${value}")
+
+		json=$(json_merge "${json}" "${new}")
+	done
+
+	echo ${json}
+}
+
+#
+#$1:base path
+#$2:associative array
+#$3:json...
+#
+__json_to_aa() {
+	local base="$1"
+	local aa="$2"; shift 2
+	local json="$*"
+
+	local keys=$(echo ${json} | jq -j 'keys') || return $?
+	local count=$(echo ${keys} | jq -j '.|length')
+	local path
+
+	local i
+	for ((i=0; i<count; i++)); do
+		local name=$(echo ${keys} | jq -j ".[${i}]")
+		local type=$(echo ${json} | jq -j ".${name} | type")
+		local value=$(echo ${json} | jq -j ".${name} | ${type}s")
+
+		if [[ "_" == "${base}" ]]; then
+			path="${name}"
+		else
+			path="${base}/${name}"
+		fi
+
+		case ${type} in
+		null | number | boolean | string)
+			aa_set ${aa} ${path} "${value}"
+			;;
+		array | object)
+			__json_to_aa ${path} ${aa} "${value}" || return $?
+			;;
+		*)
+			return ${e_bad_json}
+			;;
+		esac
+	done
+}
+
+#
+#$1:associative array
+#$2:json...
+#
+json_to_aa() {
+	__json_to_aa _ "$@"
+}
+
+#
+#$1:deft associative array
+#$2:associative array
+#$3:json...
+#
+json_to_aa_with_deft() {
+	local deft="$1"
+	local aa="$2"; shift 2
+	local json="$*"
+
+	json_to_aa "${aa}" "${json}"
+
+	local key value
+	for key in $(aa_keys ${deft}); do
+		if [[ -z "$(aa_get ${aa} ${key})" ]]; then
+			aa_set ${aa} ${key} "$(aa_get ${deft} ${key})"
+		fi
+	done
+}
+
+__test_json_eq() {
+	local a b err
+
+	a='{"name":"sb","age":"20","obj":{"name":"sb","age":"20"}}'
+	b='{"obj":{"name":"sb","age":"20"},"age":"20","name":"sb"}'
+
+	json_eq "${a}" "${b}"; err=$?
+	if ((0==err)); then
+		echo "${a}=${b}"
+	else
+		echo "${a}!=${b}"
+	fi
+}
+
+__test_json() {
+	__test_json_eq
+}

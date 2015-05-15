@@ -1,0 +1,146 @@
+#!/bin/bash
+
+if [[ -z "${__UTILS_LIST_IN__}" ]]; then __UTILS_LIST_IN__=_; else return; fi
+
+#
+#$1:value
+#$2:list...
+#
+in_list_check() {
+	local value=" $1 "; shift
+	local list=" $* "
+
+	if [[ "${list}" == "${list//${value}}" ]]; then
+		return ${e_noexist}
+	fi
+}
+
+list_cons() {
+	echo "$@"
+}
+
+list_shift() {
+	local count="$1"
+	shift $((count+1))
+
+	echo "$@"
+}
+
+#
+# first: the first NODE
+# last: the last NODE
+#
+# tail: the LIST after cut first
+# head: the LIST after cut last
+#
+# |<-first->|<----------tail--------------------------------->|
+# +---------+---------+---------+---------+---------+---------+
+# |    1    |    2    |    3    |   ...   |   n-1   |    n    |
+# +---------+---------+---------+---------+---------+---------+
+# |<--------------------head----------------------->|<-last-->|
+#
+
+list_first() {
+	echo "$1"
+}
+
+list_tail() {
+	shift; echo "$@"
+}
+
+list_head() {
+	local count=$#
+
+	case ${count} in
+	0 | 1)
+		echo ""
+		;;
+	*)
+		local list="$@"
+		#
+		# cut last
+		#
+		echo ${list% *}
+		;;
+	esac
+}
+
+list_last() {
+	local count=$#
+
+	if ((0==count)); then
+		echo ""
+	else
+		eval "echo \${${count}}"
+	fi
+}
+
+list_reverse() {
+	local count=$#
+
+	if ((0==count)); then
+		echo ""
+	else
+		local first="$1"; shift
+		local tail="$@"
+
+		echo "$(list_reverse ${tail}) ${first}"
+	fi
+}
+
+#
+#$1:node
+#[$2:list...]
+#
+list_insert() {
+	local node="$1"; shift
+	local list="$*"
+
+	if [[ -z "${list}" ]]; then
+		echo "${node}"
+	elif [[ "${list}" == "${list/${node}}" ]]; then
+		#
+		# list NOT include node
+		#
+		echo "${node} ${list}"
+	else
+		echo "${list}"
+	fi
+}
+
+#
+#$1:node
+#$2:list...
+#
+list_remove() {
+	local node="$1"; shift
+	local list="$*"
+
+	if [[ -z "${list}" ]]; then
+		echo ""
+	else
+		echo "${list/${node}}"
+	fi
+}
+
+#
+#$1:list
+#
+list_reduce() {
+	local list
+	local node
+
+	for node in "$@"; do
+		list=$(list_insert ${node} ${list})
+	done
+
+	echo "${list}"
+}
+
+#
+#$1:list a...
+#$2:list b...
+#
+list_merge() {
+	echo $(list_reduce "$@")
+}

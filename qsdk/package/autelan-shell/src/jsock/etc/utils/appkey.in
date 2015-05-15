@@ -1,0 +1,115 @@
+#!/bin/bash
+
+if [[ -z "${__UTILS_APPKEY_IN__}" ]]; then __UTILS_APPKEY_IN__=_; else return; fi
+
+#
+#$1:app
+#
+appkey_file() {
+	local app="$1"
+
+	echo "/etc/appkey/${app}.key"
+}
+
+#
+#$1:app
+#$2:key
+#$3:value
+#
+appkey_set() {
+	local app="$1"
+	local key="$2"; shift 2
+	local value="$*"
+
+	local file=$(appkey_file ${app})
+	setmultifilevalue "${file}" "${key}" "${value}"
+}
+
+#
+#$1:app
+#$2:key
+#
+appkey_get() {
+	local app="$1"
+	local key="$2"
+
+	local file=$(appkey_file ${app})
+	echo $(getmultifilevalue "${file}" "${key}")
+}
+
+#
+#$1:app
+#$2:key
+#
+get_uci_value() {
+	local app="$1"
+	local key="$2"
+
+	echo $(uci get ${app}.${key})
+}
+
+#
+# key:appkey
+# value:ucikey
+#   ucikey==section.option
+#
+readonly -A appkeymap=(
+	[debug]=debug.debug
+)
+
+#
+#$1:app
+#$2:key
+#
+appkey_to_ucikey() {
+	local app="$1"
+	local key="$2"
+
+	local appkey
+	for appkey in "${!appkeymap[@]}"; do
+		if [[ "${appkey}" == "${key}" ]]; then
+			echo "${appkeymap[${appkey}]}"
+
+			return
+		fi
+	done
+
+	echo ${key}
+}
+
+#
+#$1:app
+#$2:key
+#
+ucikey_to_appkey() {
+	local app="$1"
+	local key="$2"
+
+	local appkey ucikey
+	for appkey in "${!appkeymap[@]}"; do
+		ucikey="${appkeymap[${appkey}]}"
+
+		if [[ "${ucikey}" == "${key}" ]]; then
+			echo "${appkey}"
+
+			return
+		fi
+	done
+
+	echo ${key}
+}
+
+#
+#$1:app
+#
+appkey_load_uci() {
+	local app="$1"
+	local file=$(appkey_file ${app})
+	local appkey ucikey value
+
+	for appkey in $(awk '{print $1}' ${file} | sed '/#/d;/^$/d'); do
+		ucikey=$(appkey_to_ucikey ${app} ${appkey})
+		value=$(get_uci_value ${app} ${ucikey})
+		appkey_set "${app}" "${appkey}" "${value}"
+	done
+}

@@ -1,0 +1,55 @@
+#!/bin/bash
+
+if [[ -z "${__UTILS_LOCK_IN__}" ]]; then __UTILS_LOCK_IN__=_; else return; fi
+
+#
+#$1:lockfile
+#$2:action...
+#
+exec_with_flock() {
+	local lockfile="$1"; shift
+	local action="$*"
+	local err=0
+
+	{
+		flock -n 3 || {
+			jerror_kvs _ flock_failed ${lockfile}
+
+			return ${e_flock_failed}
+		}
+
+		#
+		# can NOT eval, the action maybe include json
+		#
+		${action}; err=$?
+	} 3<>${lockfile}
+
+	return ${err}
+}
+
+#
+#$1:lockfile
+#$2:wait
+#$3:action...
+#
+exec_with_flock_wait() {
+	local lockfile="$1"
+	local wait="$2"; shift 2
+	local action="$*"
+	local err=0
+
+	{
+		flock -w ${wait} 3 || {
+			jerror_kvs _ flock_failed ${lockfile}
+
+			return ${e_flock_failed}
+		}
+
+		#
+		# can NOT eval, the action maybe include json
+		#
+		${action}; err=$?
+	} 3<>${lockfile}
+
+	return ${err}
+}

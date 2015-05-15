@@ -1,0 +1,145 @@
+#!/bin/bash
+
+if [[ -z "${__UTILS_BASE_IN__}" ]]; then __UTILS_BASE_IN__=_; else return; fi
+
+. ${__ROOTFS__}/etc/utils/errno.in
+
+do_nothing() {
+	return
+}
+
+do_silent() {
+	eval "$@ &> /dev/null"
+}
+
+#
+#$1:cb
+#   cb or ok_cb:err_cb
+#$2:tag
+#$3:action...
+#
+do_with_cb() {
+	local cb="$1"
+	local tag="$2"; shift 2
+	local action="$*"
+	local err=0
+
+	local ok_cb err_cb
+	if [[ "${cb}" == "${cb#*:}" ]]; then
+		#
+		# cb is NOT include :
+		#   so, both ok_cb and err_cb is cb
+		#
+		ok_cb=${cb}
+		err_cb=${cb}
+	else
+		#
+		# cb is include :
+		#   so, cb is ok_cb:err_cb
+		#
+		ok_cb=${cb%:*}; ok_cb=${ok_cb:-do_nothing}
+		err_cb=${cb#*:}; err_cb=${err_cb:-do_nothing}
+	fi
+
+	eval "${action}"; err=$?
+	if ((0==err)); then
+		${ok_cb} "${tag}" "OK: ${action}"
+	else
+		${err_cb} "${tag}" "ERROR[${err}]: ${action}"
+	fi
+
+	return ${err}
+}
+
+#
+#$1:wait
+#$2:action...
+#
+do_while_ok() {
+	local wait="$1"; shift
+	local action="$*"
+
+	local err=0
+	for ((;;)); do
+		eval "${action}" && return
+
+		sleep ${wait}
+	done
+}
+
+get_board_type() {
+	cat ${__ROOTFS__}/etc/boardtype
+}
+
+#
+#$1:board_type
+#
+__board_check() {
+	local board_type="$1"
+
+	if [[ "${board_type}" != "$(get_board_type)" ]]; then
+		return ${e_bad_board}
+	fi
+}
+
+ap_board_check() {
+	__board_check ap || return $?
+}
+
+md_board_check() {
+	__board_check md || return $?
+}
+
+get_peer() {
+	local peer=${__ROOTFS__}/etc/peer
+
+	if [[ -n "${PEER}" ]]; then
+		echo ${PEER}
+	elif [[ -f "${peer}" ]]; then
+		cat ${peer}
+	elif [[ "md" == "$(get_board_type)" ]]; then
+		echo 10.0.0.1
+	else
+		echo 10.0.0.2
+	fi
+}
+
+#
+#$1:prefix
+#
+get_varlist_with_prefix() {
+	local prefix="$1"
+
+	eval "echo \${!${prefix}*}"
+}
+
+#
+#$1:err
+#
+get_error_tag() {
+	local err=$1
+
+	if ((0==err)); then
+		echo "OK"
+	else
+		echo "ERROR[${err}]"
+	fi
+}
+
+#
+#$1:times
+#$2:interval
+#$3:output
+#
+display_waiting() {
+	local times=$1
+	local interval=$2
+	local output="$3"
+	local i
+
+	for ((i=0; i<times; i++)); do
+		echo -e "${output}\c"
+
+		sleep ${interval}
+	done
+}

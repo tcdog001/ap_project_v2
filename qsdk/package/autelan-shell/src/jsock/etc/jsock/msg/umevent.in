@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [[ -n "${__JSOCK_MSG_UMEVENT_IN__}" ]]; then
+	return
+else
+	__JSOCK_MSG_UMEVENT_IN__="$0"
+fi
+
+. ${__ROOTFS__}/etc/jsock/jsock.in
+
+umevent_logger() {
+	do_logger umevent "$@"
+}
+
+readonly state_user_ok=0
+readonly state_user_flowlimit=1
+readonly state_user_onlinelimit=2
+readonly state_user_admin=3
+readonly state_user_initiative=4
+
+readonly file_user_lock=/tmp/.userlock
+readonly file_user_state=/tmp/.userstate
+readonly wait_user_state=5

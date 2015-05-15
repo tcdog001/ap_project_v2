@@ -1,0 +1,40 @@
+#!/bin/bash
+
+if [[ -z "${__UTILS_JDB_IN__}" ]]; then __UTILS_JDB_IN__=_; else return; fi
+
+. ${__ROOTFS__}/etc/utils/json.in
+
+#
+#$1:table
+#$2:key
+#$3:path
+#
+jdb_get() {
+	local table="$1"
+	local key="$2"
+	local path="$3"
+
+	local -A array
+
+	json_to_aa ${array} $(aa_get ${table} ${key})
+	echo ${array[${path}]}
+}
+
+#
+#$1:table
+#$2:key
+#$3:path
+#$4:value
+#
+jdb_set() {
+	local table="$1"
+	local key="$2"
+	local path="$3"; shift 3
+	local value="$*"
+
+	local -A array
+
+	json_to_aa ${array} $(aa_get ${table} ${key})
+	array[${path}]="${value}"
+	aa_set ${table} ${key} $(json_from_aa ${array})
+}

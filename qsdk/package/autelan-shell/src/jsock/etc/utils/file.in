@@ -1,0 +1,278 @@
+#!/bin/bash
+
+if [[ -z "${__UTILS_FILE_IN__}" ]]; then __UTILS_FILE_IN__=_; else return; fi
+
+#
+# basename
+# dirname
+#
+
+# getfilename filename
+# 	@filename: just filename, not include path
+getfilename() {
+	local filename=$1
+
+	echo "${filename%.*}" #cut short tail match ".*", then get long prefix
+}
+
+# fcom_getfilesuffix filename
+# 	@filename: just filename, not include path
+getfilesuffix() {
+	local filename=$1
+
+	echo "${filename##*.}" #cut long head match "*.", then get short suffix
+}
+
+#
+#$1:file
+#
+mkfile() {
+	local file=$1
+
+	if [[ ! -f "${file}" ]]; then
+		local dir=$(dirname file)
+		if [[ ! -d "${dir}" ]]; then
+			MKDIR ${dir} &>/dev/null || return $?
+		fi
+
+		touch "${file}" &>/dev/null
+	fi
+
+	echo "${file}"
+}
+
+#
+#$@:files...
+#
+mkfiles() {
+	local list="$*"
+	local file
+
+	for file in ${list}; do
+		mkfile ${file}
+	done
+}
+
+#
+#$1:file
+#$2:state when file exist
+#$3:state when file not exist
+#
+get_file_state() {
+	local file="$1"
+	local exist="$2"
+	local noexist="$3"
+
+	if [[ -f "${file}" ]]; then
+		echo "${exist}"
+	else
+		echo "${noexist}"
+	fi
+}
+
+#
+#$1:file
+#$2:state when file exist
+#$3:state when file not exist
+#$4:state
+#
+set_file_state() {
+	local file="$1"
+	local exist="$2"
+	local noexist="$3"
+	local state="$4"
+
+	if [[ "${exist}" == "${state}" ]]; then
+		touch ${file}
+	else
+		rm -f ${file}
+	fi
+}
+
+#
+#$1:file(include path)
+#[$2:default value]
+#
+get_file_value() {
+	local file=$1; shift
+	local deft="$*"
+
+	if [[ -f "${file}" ]]; then
+		cat ${file}
+	else
+		echo ${deft}
+	fi
+}
+
+#
+#$1:file(include path)
+#[$2:value ...]
+#
+set_file_value() {
+	local file=$1; shift
+	local value="$*"
+	local err=0
+
+	echo ${value} > $(mkfile ${file}); err=$?; fsync ${file}
+
+	return ${err}
+}
+
+#
+#$1:file(include path)
+#[$2:default value ...]
+#
+getfilevalue() {
+	local file=$1; shift
+	local deft="$*"
+
+	if [[ -f "${file}" ]]; then
+		cat ${file}
+	else
+		set_file_value "${file}" ${deft}
+
+		echo ${deft}
+	fi
+}
+
+#
+#read file old value and write file new value
+#
+#$1:file(include path)
+#[$2:new value ...]
+#
+setfilevalue() {
+	local file=$1; shift
+	local new="$*"
+
+	if [[ -f "${file}" ]]; then
+		cat ${file}
+	else
+		echo ${new}
+	fi
+
+	set_file_value "${file}" ${new}
+}
+
+#
+#$1:file
+#$2:key
+#$3:value
+#
+setmultifilevalue() {
+	local file="$1"
+	local key="$2"; shift 2
+	local value="$*"
+
+	mkfile ${file} \
+		&& sed -i "/${key}/d" ${file} \
+		&& echo "${value}" >> ${file} \
+		&& fsync ${file}
+}
+
+#
+#$1:file
+#$2:key
+#
+getmultifilevalue() {
+	local file="$1"
+	local key="$2"
+
+	local _ value
+	read _ value <<< $(grep "${key}" ${file} 2>/dev/null)
+	echo ${value}
+}
+
+#
+#$1:file
+#[$2:added]
+#
+readnumberfile_andadd() {
+	local file=$1
+	local added=$2; added=${added:-1}
+
+	local number=$(getfilevalue ${file} 0)
+	echo ${number}
+
+	set_file_value ${file} $((number + added))
+}
+
+
+#
+#$1:file
+#
+readnumberfile_andaddone() {
+	readnumberfile_andadd "$1" 1
+}
+
+#
+#$1:src(the file)
+#$2:dst(the link)
+#
+LN_FILE() {
+	local src="$1"
+	local dst="$2"
+
+	ln -sf ${src} ${dst}
+}
+
+#
+#$1:src(the dir)
+#$2:dst(the link)
+#
+LN_DIR() {
+	local src="$1"
+	local dst="$2"
+
+	if [[ -d "${dst}" ]]; then
+		rm -fr ${dst}
+	fi
+
+	ln -sf ${src} ${dst}
+}
+
+#
+#$1:src
+#$2:dst
+#
+do_dd() {
+	local src="$1"
+	local dst="$2"
+	local err=0
+
+	dd if=${src} of=${dst}; err=$?; sync
+	if ((0!=err)); then
+		echo_logger "dd" \
+			"ERROR[${err}]: dd if=${src} of=${dst}"
+	fi
+
+	return ${err}
+}
+
+#
+#$1:file
+#$2:value
+#
+delete_file_line_byvalue() {
+	local file="$1"; shift
+	local value="$*"
+	local replace=__.__.__.__
+
+	#
+	# 1. replace value by __.__.__.__
+	# 2. delete by __.__.__.__
+	#
+	sed -i "s#${value}#${replace}#g;/${replace}/d" ${file}
+}
+
+#
+#$1:file
+#
+get_file_md5() {
+	local file="$1"
+	local md5 _
+
+	read md5 _ <<< $(md5sum ${file})
+
+	echo ${md5}
+}

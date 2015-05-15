@@ -1,0 +1,107 @@
+#!/bin/bash
+
+if [[ -z "${__UTILS_STRUCT_IN__}" ]]; then __UTILS_STRUCT_IN__=_; else return; fi
+
+#
+#$1:struct name
+#$2:struct key
+#
+__get_struct_prefix() {
+	local name="$1"
+	local key="$2"
+
+	echo ____struct_${name}_${key}_
+}
+
+#
+#$1:struct name
+#$2:struct key
+#$3:struct field
+#
+__get_struct_instance() {
+	local name="$1"
+	local key="$2"
+	local field="$3"
+
+	echo "$(__get_struct_prefix ${name} ${key})${field}"
+}
+
+#
+#$1:struct name
+#$2:struct key
+#$3:struct field
+#
+get_struct_field() {
+	local instance=$(__get_struct_instance "$@")
+
+	eval "echo \${${instance}=}"
+}
+
+#
+#$1:struct name
+#$2:struct key
+#$3:struct field
+#[$4:struct value...]
+#
+set_struct_field() {
+	local instance=$(__get_struct_instance "$@"); shift 3
+
+	eval "${instance}=\"$*\""
+}
+
+#
+#$1:struct name
+#$2:struct key
+#
+struct_fields() {
+	local prefix=$(__get_struct_prefix "$@")
+
+	echo $(get_varlist_with_prefix ${prefix})
+}
+
+#
+#$1:struct name
+#$2:struct field
+#$3:keys
+#
+struct_values() {
+	local name="$1"
+	local field="$2"; shift 2
+	local keys="$*"
+	local list
+
+	local key
+	for key in ${keys}; do
+		list="${list} $(get_struct_field ${name} ${key} ${field})"
+	done
+
+	echo "${list}"
+}
+
+#
+#$1:struct name
+#$2:struct key
+#
+struct_delete() {
+	local fields=$(struct_fields "$@")
+	local var
+
+	for var in ${fields}; do
+	    eval "unset ${var}"
+	done
+}
+
+#
+#$1:struct name
+#$2:struct key
+#[$3:show]
+#
+struct_show() {
+	local fields=$(struct_fields "$@"); shift 2
+	local show="$*"; show=${show:-echo}
+	local var
+
+	for var in ${fields}; do
+	    eval "${show} ${var}=${!var}"
+	done
+}
