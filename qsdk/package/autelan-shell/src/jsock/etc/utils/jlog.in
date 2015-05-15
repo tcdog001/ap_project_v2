@@ -1,0 +1,358 @@
+#!/bin/bash
+
+if [[ -z "${__UTILS_JLOG_IN__}" ]]; then __UTILS_JLOG_IN__=_; else return; fi
+
+. ${__ROOTFS__}/etc/utils/json.in
+
+readonly -A JLOG_PRI=(
+	[emerg]=0
+	[alert]=1
+	[crit]=2
+	[error]=3
+	[waring]=4
+	[notice]=5
+	[info]=6
+	[debug]=7
+)
+
+readonly -A JDEBUG_LEVEL=(
+	[ok]=1
+	[bug]=2
+	[error]=4
+	[trace]=8
+	[event]=16
+	[entry]=32
+	[packet]=64
+	[signal]=128
+	[timeout]=256
+	[test]=512
+)
+
+readonly dir_jlog=/tmp/log
+readonly file_jlog_ap_file=${dir_jlog}/ap.log
+readonly file_jlog_md_file=${dir_jlog}/md.log
+readonly file_jlog_ap_afile=${dir_jlog}/.ap.log
+readonly file_jlog_md_afile=${dir_jlog}/.md.log
+
+#
+#$1:pri
+#
+jlog_pri() {
+	local pri="$1"
+	local npri
+
+	npri=${JLOG_PRI[${pri}]}
+
+	echo ${npri:-6}
+}
+
+#
+#$1:pri
+#$2:app
+#$3:json...
+#
+jlog_obj() {
+	local pri="$1"
+	local app="$2"; shift 2
+	local json="$*"
+
+	if [[ "_" == "${app}" ]]; then
+		local filename=$(basename $0)
+
+		app=${filename%.*}
+	fi
+
+	jlogger "$(jlog_pri ${pri})" "${app}" "${json}"
+}
+
+#
+#$1:pri
+#$2:app
+#$3:kvs...
+#
+#   jlog_kvs debug app k1 v1 k2 v2 ... kn vn
+#       value maybe a json
+#
+jlog_kvs() {
+	local pri="$1"
+	local app="$2"; shift 2
+	local json=$(json_create_bykvs "$@")
+
+	jlog_obj "${pri}" "${app}" "${json}"
+}
+
+#
+#$1:app
+#$2:kvs...
+#
+jemerg_kvs() {
+	jlog_kvs emerg "$@"
+}
+
+#
+#$1:app
+#$2:kvs...
+#
+jalert_kvs() {
+	jlog_kvs alert "$@"
+}
+
+#
+#$1:app
+#$2:kvs...
+#
+jcrit_kvs() {
+	jlog_kvs crit "$@"
+}
+
+#
+#$1:app
+#$2:kvs...
+#
+jerror_kvs() {
+	jlog_kvs error "$@"
+}
+
+#
+#$1:app
+#$2:kvs...
+#
+jwaring_kvs() {
+	jlog_kvs waring "$@"
+}
+
+#
+#$1:app
+#$2:kvs...
+#
+jnotice_kvs() {
+	jlog_kvs notice "$@"
+}
+
+#
+#$1:app
+#$2:kvs...
+#
+jinfo_kvs() {
+	jlog_kvs info "$@"
+}
+
+#
+#$1:app
+#$2:kvs...
+#
+jdebug_kvs() {
+	jlog_kvs debug "$@"
+}
+
+#
+#$1:pri
+#$2:app
+#$3:KVs...
+#
+#   jlog_KVs debug app k1 v1 k2 v2 ... kn vn
+#       key maybe as path(include ifs /)
+#       value maybe a json
+#
+jlog_KVs() {
+	local pri="$1"
+	local app="$2"; shift 2
+	local json=$(json_create "$@")
+
+	jlog_obj "${pri}" "${app}" "${json}"
+}
+
+#
+#$1:app
+#$2:KVs...
+#
+jemerg_KVs() {
+	jlog_KVs emerg "$@"
+}
+
+#
+#$1:app
+#$2:KVs...
+#
+jalert_KVs() {
+	jlog_KVs alert "$@"
+}
+
+#
+#$1:app
+#$2:KVs...
+#
+jcrit_KVs() {
+	jlog_KVs crit "$@"
+}
+
+#
+#$1:app
+#$2:KVs...
+#
+jerror_KVs() {
+	jlog_KVs error "$@"
+}
+
+#
+#$1:app
+#$2:KVs...
+#
+jwaring_KVs() {
+	jlog_KVs waring "$@"
+}
+
+#
+#$1:app
+#$2:KVs...
+#
+jnotice_KVs() {
+	jlog_KVs notice "$@"
+}
+
+#
+#$1:app
+#$2:KVs...
+#
+jinfo_KVs() {
+	jlog_KVs info "$@"
+}
+
+#
+#$1:app
+#$2:KVs...
+#
+jdebug_KVs() {
+	jlog_KVs debug "$@"
+}
+
+__test_jlog() {
+	jerror_kvs kvs \
+		name sb \
+		obj '{"name":"SB"}' \
+		big '{"name":"DSB","obj":{"name":"SB"}}' \
+		#end
+
+	jerror_KVs KVs \
+		name/name1/name2 sb \
+		name/obj1/obj2 '{"name":"SB"}' \
+		name/big1/big2 '{"name":"DSB","obj":{"name":"SB"}}' \
+		#end
+}
+
+__get_jdebug_app() {
+	cat /tmp/.jdebug_app 2>/dev/null
+}
+
+__get_jdebug_level() {
+	local level=$(cat /tmp/.jdebug_level 2>/dev/null); level=${level:-0}
+
+	number_check ${level} || {
+		level=0
+	}
+
+	echo ${level}
+}
+
+__is_jdebug_level() {
+	local level="$1"
+	local global=$(__get_jdebug_level)
+
+	if ((level == (global & level) )); then
+		echo "yes"
+	else
+		echo "no"
+	fi
+}
+
+__jdebug_by() {
+	local level="$1"
+	local app="$2"; shift 2
+	local info="$*"
+
+	if [[ "yes" == "$(__is_jdebug_level ${level})" && \
+	      "${app}" == "$(__get_jdebug_app)" ]]; then
+		jdebug_kvs "${app}" appinfo "${info}"
+	fi
+}
+
+#
+#$1:app name
+#$2...:app info
+#
+jdebug_ok() {
+	__jdebug_by ${JDEBUG_LEVEL[ok]} "$@"
+}
+
+jdebug_bug() {
+	__jdebug_by ${JDEBUG_LEVEL[bug]} "$@"
+}
+
+jdebug_error() {
+	__jdebug_by ${JDEBUG_LEVEL[error]} "$@"
+}
+
+jdebug_trace() {
+	__jdebug_by ${JDEBUG_LEVEL[trace]} "$@"
+}
+
+jdebug_event() {
+	__jdebug_by ${JDEBUG_LEVEL[event]} "$@"
+}
+
+jdebug_entry() {
+	__jdebug_by ${JDEBUG_LEVEL[entry]} "$@"
+}
+
+jdebug_packet() {
+	__jdebug_by ${JDEBUG_LEVEL[packet]} "$@"
+}
+
+jdebug_signal() {
+	__jdebug_by ${JDEBUG_LEVEL[signal]} "$@"
+}
+
+jdebug_timeout() {
+	__jdebug_by ${JDEBUG_LEVEL[timeout]} "$@"
+}
+
+jdebug_test() {
+	__jdebug_by ${JDEBUG_LEVEL[test]} "$@"
+}
+
+#
+#$1:file
+#$2:info...
+#
+log_with_limit() {
+	local file="$1"; shift
+	local info="$*"
+
+	local count=$(sed -n '$=' ${file} 2>/dev/null)
+	number_check ${count} && {
+		if ((count>1000)); then
+			sed -i "1,100d" ${file} &> /dev/null
+		fi
+	}
+
+	echo "${info}" >> ${file}; fsync ${file}
+}
+
+#
+#$1:tag
+#[$2:info...]
+#
+do_logger() {
+	local tag="$1"; shift
+
+	logger -t "${tag}" "$*"
+}
+
+#
+#$1:tag
+#[$2:info...]
+#
+echo_logger() {
+	echo "$@"
+	do_logger "$@"
+}

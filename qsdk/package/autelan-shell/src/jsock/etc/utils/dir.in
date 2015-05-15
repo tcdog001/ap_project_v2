@@ -1,0 +1,292 @@
+#!/bin/bash
+
+if [[ -z "${__UTILS_DIR_IN__}" ]]; then __UTILS_DIR_IN__=_; else return; fi
+
+. ${__ROOTFS__}/etc/utils/utils.in
+
+readonly file_ap=sysupgrade.bin
+readonly file_ap_long=openwrt-ar71xx-generic-db120-squashfs-sysupgrade.bin
+readonly file_ap_boot=u-boot.bin
+readonly file_boot=fastboot-burn.bin
+readonly file_kernel=hi_kernel.bin
+readonly file_pqparam=pq_param_hi3718cv100.bin
+
+readonly dev_hd=/dev/udiskp1
+readonly dev_usb=/dev/udisk1310p1
+readonly dev_sd=/dev/mmcblk1p1
+readonly dev_boot=/dev/mmcblk0p1
+readonly dev_bootenv=/dev/mmcblk0p2
+readonly dev_pqparam=/dev/mmcblk0p4
+
+readonly dev_kernel0=/dev/mmcblk0p6
+readonly dev_kernel1=/dev/mmcblk0p7
+readonly dev_kernel2=/dev/mmcblk0p8
+readonly dev_kernel3=/dev/mmcblk0p9
+readonly dev_kernel4=/dev/mmcblk0p10
+readonly dev_kernel5=/dev/mmcblk0p11
+readonly dev_kernel6=/dev/mmcblk0p12
+
+readonly dev_rootfs0=/dev/mmcblk0p13
+readonly dev_rootfs1=/dev/mmcblk0p14
+readonly dev_rootfs2=/dev/mmcblk0p15
+readonly dev_rootfs3=/dev/mmcblk0p16
+readonly dev_rootfs4=/dev/mmcblk0p17
+readonly dev_rootfs5=/dev/mmcblk0p18
+readonly dev_rootfs6=/dev/mmcblk0p19
+
+readonly file_dev_rootfs_current=/tmp/.dev_rootfs_current
+readonly file_rootfs_current=/tmp/.rootfs_current
+
+#
+# base dir
+#
+readonly dir_flash=/mnt/flash
+readonly dir_sd=/mnt/sd
+readonly dir_hd=/mnt/hd
+readonly dir_usb=/mnt/usb
+readonly dir_tftp=/tmp/tftp
+readonly dir_status=/tmp/status
+readonly dir_plt=/tmp/plt
+readonly dir_plt_syslog=${dir_plt}/syslog
+readonly file_plt_cache=${dir_plt}/.plt.cache
+
+readonly dir_website_upgrade=${dir_hd}/website_upgrade
+readonly dir_website_config=${dir_hd}/website_config
+readonly file_website_config=${dir_website_config}/website.conf
+
+declare link_data
+declare link_data_master
+declare link_data_slave
+
+declare link_config
+declare link_config_master
+declare link_config_slave
+
+#readonly link_hd=/hd
+#readonly link_sd=/sd
+#readonly link_usb=/usb
+#readonly link_rootfs0=/rootfs0
+#readonly link_rootfs1=/rootfs1
+#readonly link_rootfs2=/rootfs2
+#readonly link_rootfs3=/rootfs3
+#readonly link_rootfs4=/rootfs4
+#readonly link_rootfs5=/rootfs5
+#readonly link_rootfs6=/rootfs6
+
+#
+# for third-part(custom dir)
+#
+readonly dir_cp=${dir_hd}/${__CP__}
+readonly dir_cp_website=${dir_cp}/www
+readonly dir_cp_script=${dir_cp}/script
+readonly dir_tmp_cp=${__CP_TEMP__}
+
+readonly file_status_3g=${dir_status}/3g
+readonly file_status_5g=${dir_status}/5g
+
+readonly LINK_UP=up
+readonly LINK_DOWN=down
+
+#
+# usb dir
+#
+readonly dir_usb_upgrade=${dir_usb}/upgrade
+readonly dir_usb_upgrade_rootfs=${dir_usb_upgrade}/rootfs
+readonly dir_usb_upgrade_rootfs_data=${dir_usb_upgrade}/rootfs_data
+readonly dir_usb_upgrade_website=${dir_usb_upgrade}/website
+
+#
+# partition dir
+#
+readonly dir_rootfs0=${dir_flash}/rootfs0
+readonly dir_rootfs1=${dir_flash}/rootfs1
+readonly dir_rootfs2=${dir_flash}/rootfs2
+readonly dir_rootfs3=${dir_flash}/rootfs3
+readonly dir_rootfs4=${dir_flash}/rootfs4
+readonly dir_rootfs5=${dir_flash}/rootfs5
+readonly dir_rootfs6=${dir_flash}/rootfs6
+
+readonly dir_data0=${dir_flash}/data0
+readonly dir_data1=${dir_flash}/data1
+
+readonly dir_config0=${dir_flash}/config0
+readonly dir_config1=${dir_flash}/config1
+
+readonly dir_rootfs_data=${dir_flash}/rootfs_data
+
+
+#
+# for self big app
+#
+readonly dir_app=${dir_rootfs_data}/app
+readonly dir_app_bin=${dir_app}/bin
+readonly dir_app_etc=${dir_app}/etc
+readonly dir_app_lib=${dir_app}/lib
+readonly dir_app_mnt=${dir_app}/mnt
+readonly dir_app_opt=${dir_app}/opt
+readonly dir_app_usr=${dir_app}/usr
+readonly dir_app_usr_bin=${dir_app_usr}/bin
+readonly dir_app_usr_sbin=${dir_app_usr}/sbin
+readonly dir_app_usr_local=${dir_app_usr}/local
+readonly dir_app_sbin=${dir_app}/sbin
+
+
+
+#
+# for all rootfs config
+#
+readonly dir_config_nginx=${link_config}/nginx
+readonly dir_config_php=${link_config}/php
+readonly dir_config_plt=${link_config}/plt
+readonly dir_config_fagent=${link_config}/fagent
+readonly dir_config_stimer=${link_config}/stimer
+readonly dir_config_upgrade=${link_config}/upgrade
+
+#
+# backup dir
+#
+readonly dir_backup=${link_data}/backup
+readonly dir_backup_log=${dir_backup}/log       #same
+readonly dir_backup_log_gps=${dir_backup}/log   #same
+readonly dir_backup_log_sys=${dir_backup}/log   #same
+
+#
+# rsync dir
+#
+readonly dir_rsync=${link_data}/rsync
+readonly dir_ap_rsync=${dir_rsync}/ap
+readonly dir_md_rsync=${dir_rsync}/md
+
+#
+# opt dir
+#
+readonly dir_opt=${link_data}/opt
+
+readonly dir_opt_log=${dir_opt}/log
+readonly dir_opt_log_gps=${dir_opt_log}/gps
+readonly dir_opt_log_vcc=${dir_opt_log}/vcc
+readonly dir_opt_log_onoff=${dir_opt_log}/onoff
+
+readonly dir_opt_log_drop=${dir_opt_log}/drop
+readonly dir_opt_log_drop_wifi=${dir_opt_log_drop}/wifi
+readonly dir_opt_log_drop_3g=${dir_opt_log_drop}/3g
+readonly dir_opt_log_drop_gps=${dir_opt_log_drop}/gps
+
+readonly dir_opt_log_flow=${dir_opt_log}/flow
+readonly dir_opt_log_flow_user=${dir_opt_log_flow}/user
+readonly dir_opt_log_flow_3g=${dir_opt_log_flow}/3g
+
+readonly dir_opt_log_nginx=${dir_opt_log}/nginx
+readonly dir_opt_log_nginx_error=${dir_opt_log_nginx}/error
+readonly dir_opt_log_nginx_access=${dir_opt_log_nginx}/access
+#readonly file_nginx_access_log=${dir_opt_log_nginx_access}/nginx.log
+#readonly file_nginx_error_log=${dir_opt_log_nginx_error}/nginx.log
+
+readonly dir_opt_log_squid=${dir_opt_log}/squid
+readonly dir_opt_log_squid_error=${dir_opt_log_squid}/error
+readonly dir_opt_log_squid_access=${dir_opt_log_squid}/access
+#readonly file_squid_access_log=${dir_opt_log_squid_access}/squid.log
+#readonly file_squid_error_log=${dir_opt_log_squid_error}/squid.log
+
+readonly dir_opt_log_php=${dir_opt_log}/php
+readonly dir_opt_log_phpfpm_error=${dir_opt_log_php}/error
+
+readonly dir_opt_log_upgrade=${dir_opt_log}/upgrade
+readonly dir_opt_log_upgrade_content=${dir_opt_log_upgrade}/content
+readonly dir_opt_log_upgrade_system=${dir_opt_log_upgrade}/system
+
+readonly dir_opt_log_usr=${dir_opt_log}/usr
+readonly dir_opt_log_auth=${dir_opt_log}/auth
+
+readonly dir_opt_log_sys=${dir_opt_log}/sys
+readonly dir_opt_log_sys_md=${dir_opt_log_sys}/md
+readonly dir_opt_log_sys_md_init=${dir_opt_log_sys_md}/init
+readonly dir_opt_log_sys_md_klog=${dir_opt_log_sys_md}/klog
+readonly dir_opt_log_sys_md_ulog=${dir_opt_log_sys_md}/ulog
+readonly dir_opt_log_sys_ap=${dir_opt_log_sys}/ap
+readonly dir_opt_log_sys_ap_init=${dir_opt_log_sys_ap}/init
+readonly dir_opt_log_sys_ap_klog=${dir_opt_log_sys_ap}/klog
+readonly dir_opt_log_sys_ap_ulog=${dir_opt_log_sys_ap}/ulog
+
+readonly dir_opt_data=${dir_opt}/data
+readonly dir_opt_data_gps=${dir_opt_data}/gps
+readonly dir_opt_data_3g=${dir_opt_data}/3g
+#
+# tmp log dir
+#
+readonly dir_tmp_log=/tmp/.log
+
+readonly dir_tmp_log_backup=${dir_tmp_log}/backup
+
+readonly dir_tmp_log_dev=${dir_tmp_log}/dev
+readonly dir_tmp_log_dev_info=${dir_tmp_log_dev}/info
+readonly dir_tmp_log_dev_monitor=${dir_tmp_log_dev}/monitor
+readonly dir_tmp_log_gps=${dir_tmp_log}/gps
+readonly dir_tmp_log_vcc=${dir_tmp_log}/vcc
+readonly dir_tmp_log_onoff=${dir_tmp_log}/onoff
+             
+readonly dir_tmp_log_drop=${dir_tmp_log}/drop
+readonly dir_tmp_log_drop_wifi=${dir_tmp_log_drop}/wifi
+readonly dir_tmp_log_drop_3g=${dir_tmp_log_drop}/3g
+readonly dir_tmp_log_drop_gps=${dir_tmp_log_drop}/gps
+             
+readonly dir_tmp_log_flow=${dir_tmp_log}/flow
+readonly dir_tmp_log_flow_user=${dir_tmp_log_flow}/user
+readonly dir_tmp_log_flow_3g=${dir_tmp_log_flow}/3g
+             
+readonly dir_tmp_log_nginx=${dir_tmp_log}/nginx
+readonly dir_tmp_log_nginx_error=${dir_tmp_log_nginx}/error
+readonly dir_tmp_log_nginx_access=${dir_tmp_log_nginx}/access
+readonly filetmpinx_access_log=${dir_tmp_log_nginx_access}/nginx.log
+readonly filetmpinx_error_log=${dir_tmp_log_nginx_error}/nginx.log
+             
+readonly dir_tmp_log_squid=${dir_tmp_log}/squid
+readonly dir_tmp_log_squid_error=${dir_tmp_log_squid}/error
+readonly dir_tmp_log_squid_access=${dir_tmp_log_squid}/access
+readonly file_squid_access_log=${dir_tmp_log_squid_access}/squid.log
+readonly file_squid_error_log=${dir_tmp_log_squid_error}/squid.log
+
+readonly dir_tmp_log_php=${dir_tmp_log}/php
+readonly dir_tmp_log_phpfpm_error=${dir_tmp_log_php}/error
+             
+readonly dir_tmp_log_upgrade=${dir_tmp_log}/upgrade
+readonly dir_tmp_log_upgrade_content=${dir_tmp_log_upgrade}/content
+readonly dir_tmp_log_upgrade_system=${dir_tmp_log_upgrade}/system
+             
+readonly dir_tmp_log_usr=${dir_tmp_log}/usr
+readonly dir_tmp_log_auth=${dir_tmp_log}/auth
+             
+readonly dir_tmp_log_sys=${dir_tmp_log}/sys
+readonly dir_tmp_log_sys_md=${dir_tmp_log_sys}/md
+readonly dir_tmp_log_sys_md_init=${dir_tmp_log_sys_md}/init
+readonly dir_tmp_log_sys_md_klog=${dir_tmp_log_sys_md}/klog
+readonly dir_tmp_log_sys_md_ulog=${dir_tmp_log_sys_md}/ulog
+readonly dir_tmp_log_sys_ap=${dir_tmp_log_sys}/ap
+readonly dir_tmp_log_sys_ap_init=${dir_tmp_log_sys_ap}/init
+readonly dir_tmp_log_sys_ap_klog=${dir_tmp_log_sys_ap}/klog
+readonly dir_tmp_log_sys_ap_ulog=${dir_tmp_log_sys_ap}/ulog
+
+#
+# tftp dir
+#
+readonly dir_tftp_log=${dir_tftp}/log
+readonly dir_tftp_log_gps=${dir_tftp_log}/gps
+readonly dir_tftp_log_usr=${dir_tftp_log}/usr
+readonly dir_tftp_log_auth=${dir_tftp_log}/auth
+readonly dir_tftp_log_sys=${dir_tftp_log}/sys
+readonly dir_tftp_log_sys_md=${dir_tftp_log_sys}/md
+readonly dir_tftp_log_sys_md_init=${dir_tftp_log_sys_md}/init
+readonly dir_tftp_log_sys_md_klog=${dir_tftp_log_sys_md}/klog
+readonly dir_tftp_log_sys_md_ulog=${dir_tftp_log_sys_md}/ulog
+readonly dir_tftp_log_sys_ap=${dir_tftp_log_sys}/ap
+readonly dir_tftp_log_sys_ap_init=${dir_tftp_log_sys_ap}/init
+readonly dir_tftp_log_sys_ap_klog=${dir_tftp_log_sys_ap}/klog
+readonly dir_tftp_log_sys_ap_ulog=${dir_tftp_log_sys_ap}/ulog
+
+readonly dir_tftp_data=${dir_tftp}/data
+readonly dir_tftp_data_gps=${dir_tftp_data}/gps
+readonly dir_tftp_data_3g=${dir_tftp_data}/3g
+
+readonly dir_tftp_version=${dir_tftp}/version
+
+readonly file_md_ulog=${dir_opt_log_sys_md_ulog}/messages
