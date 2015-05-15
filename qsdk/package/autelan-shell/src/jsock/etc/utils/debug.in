@@ -1,27 +1,14 @@
 #!/bin/bash
 
-if [ -n "${__UTILS_DEBUG_IN__}" ]; then
-	return
-else
-	__UTILS_DEBUG_IN__="$0"
-fi
+if [[ -z "${__UTILS_DEBUG_IN__}" ]]; then __UTILS_DEBUG_IN__=_; else return; fi
 
-if [ -z "${DEBUG}" ]; then
-	DEBUG=$(get_file_value ${__ROOTFS__}/etc/utils/.DEBUG)
-fi
+dir_debug=${dir_debug:-/tmp/.debug}
+MKDIR "${dir_debug}"
 
-if [ -z "${DEBUG_LEVEL}" ]; then
-	DEBUG_LEVEL=$(get_file_value ${__ROOTFS__}/etc/utils/.DEBUG_LEVEL __ok__,__error__,__trace__)
-fi
-
-if [ -z "${DEBUG_MODULE}" ]; then
-	DEBUG_MODULE=$(get_file_value ${__ROOTFS__}/etc/utils/.DEBUG_MODULE)
-fi
-
-if [ -z "${DEBUG_SUBMODULE}" ]; then
-	DEBUG_SUBMODULE=$(get_file_value ${__ROOTFS__}/etc/utils/.DEBUG_SUBMODULE __all__)
-fi
-
+DEBUG=${DEBUG:-$(getfilevalue ${dir_debug}/.debug)}
+DEBUG_LEVEL=${DEBUG_LEVEL:-$(getfilevalue ${dir_debug}/.debug_level __ok__,__error__,__trace__)}
+DEBUG_MODULE=${DEBUG_MODULE:-$(getfilevalue ${dir_debug}/.debug_module)}
+DEBUG_SUBMODULE=${DEBUG_SUBMODULE:-$(getfilevalue ${dir_debug}/.debug_submoudle __all__)}
 
 #var_name_list var1 var2 var3...
 #at least one var
@@ -30,15 +17,15 @@ debug_debug_varlist() {
 	local var_name
 
 	for var_name in ${var_name_list}; do
-		if [ -n "${DEBUG_DEBUG}" ]; then
-			do_logger "debug_debug" "${var_name}=${!var_name}"
+		if [[ -n "${DEBUG_DEBUG}" ]]; then
+			do_logger debug_debug "${var_name}=${!var_name}"
 		fi
 	done
 }
 
 debug_debug() {
-	if [ -n "${DEBUG_DEBUG}" ]; then
-		do_logger "debug_debug" "$@"
+	if [[ -n "${DEBUG_DEBUG}" ]]; then
+		do_logger debug_debug "$@"
 	fi
 }
 
@@ -51,18 +38,18 @@ debug_debug() {
 debug_match() {
 	local var_name=$1
 	local filter_name=$2
-	
+
 	local var_value=${!var_name}
 	local filter_value=${!filter_name}
-	
+
 	if [[ -z "${var_value}" || -z "${filter_value}" ]]; then
 		debug_debug "${filter_name}:${filter_value} no match ${var_name}:${var_value}"
 		return 1 #false
 	fi
-	
-	if [[ "__all__" == "${var_value}" || \
-		"__all__" == "${filter_value}" || \
-		"${var_value}" != "${var_value/${filter_value}}" ]]; then
+
+	if [[ __all__ == "${var_value}" \
+			|| __all__ == "${filter_value}" \
+			|| "${var_value}" != "${var_value/${filter_value}}" ]]; then
 		debug_debug "${filter_name}:${filter_value} is match ${var_name}:${var_value}"
 		return 0 #true
 	else
@@ -82,7 +69,7 @@ debug_callers() {
 	for ((i=0; i<100000; i++)); do
 		info="$(caller ${i})"
 
-		if [ -n "${info}" ]; then
+		if [[ -n "${info}" ]]; then
 			all="${all}${info}\n"
 		else
 			echo -e "${all}"
@@ -112,28 +99,20 @@ debug_echo() {
 	debug_debug_varlist \
 		DEBUG DEBUG_MODULE DEBUG_SUBMODULE DEBUG_LEVEL \
 		module sub level
-	
+
 	#
 	# DEBUG or DEBUG_LEVEL or DEBUG_MODULE or DEBUG_SUBMODULE off
 	#
-	if [[	-z "${DEBUG}" || \
+	if [[ -z "${DEBUG}" || \
 			-z "${DEBUG_LEVEL}" || \
 			-z "${DEBUG_MODULE}" || \
 			-z "${DEBUG_SUBMODULE}" ]]; then
 		return 0
 	fi
-	
-	debug_match DEBUG_LEVEL level || {
-		return 0
-	}
-	
-	debug_match DEBUG_MODULE module || {
-		return 0
-	}
 
-	debug_match DEBUG_SUBMODULE sub || {
-		return 0
-	}
+	debug_match DEBUG_LEVEL level || return
+	debug_match DEBUG_MODULE module || return
+	debug_match DEBUG_SUBMODULE sub || return
 
 	local tag="${module}.${sub}.${level}"
 	do_logger "${tag}" "$@"
@@ -148,21 +127,21 @@ debug_echo() {
 }
 
 debug_ok() {
-	debug_echo "__all__" "__all__" "__ok__" "$@"
+	debug_echo __all__ __all__ __ok__ "$@"
 }
 
 debug_error() {
-	debug_echo "__all__" "__all__" "__error__" "$@"
+	debug_echo __all__ __all__ __error__ "$@"
 }
 
 debug_trace() {
-	debug_echo "__all__" "__all__" "__trace__" "$@"
+	debug_echo __all__ __all__ __trace__ "$@"
 }
 
 debug_var() {
 	local varname=$1
 
-	debug_echo "__all__" "__all__" "__var__" "${var_name}=${!var_name}"
+	debug_echo __all__ __all__ __var__ "${var_name}=${!var_name}"
 }
 
 #
@@ -172,7 +151,7 @@ debug_var() {
 #	at least one var
 #
 debug_varlist() {
-	local var_name_list=$*
+	local var_name_list="$*"
 	local var_name
 
 	for var_name in ${var_name_list}; do
@@ -182,40 +161,27 @@ debug_varlist() {
 
 #
 #$1:module
-#$2:action
+#$2:action...
 #
 debug_do() {
 	local module="$1"; shift
 	local action="$*"
-	local err
+	local err=0
+	local prefix
 
-	${module}_debug_trace "[BEFORE]${action}"
+	if [[ "__all__" != "${module}" ]]; then
+		prefix="${module}_"
+	fi
+
+	${prefix}debug_trace "[BEFORE]${action}"
 	eval "${action}"; err=$?
 
 	local after="...[AFTER:${err}]"
-	if [ "0" == "${err}" ]; then
-		if [ "__all__" == "${module}" ]; then
-			debug_trace "${after}"
-		else
-			${module}_debug_trace "${after}"
-		fi
+	if [[ "0" == "${err}" ]]; then
+		${prefix}debug_trace "${after}"
 	else
-		if [ "__all__" == "${module}" ]; then
-			debug_error "${after}"
-		else
-			${module}_debug_error "${after}"
-		fi
+		${prefix}debug_error "${after}"
 	fi
 
 	return ${err}
 }
-
-#
-# command || {
-#	enter here when command failed
-# }
-#
-# command && {
-#	enter here when command success
-# }
-#

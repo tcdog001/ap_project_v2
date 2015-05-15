@@ -1,35 +1,70 @@
 #!/bin/bash
 
-if [ -n "${__UTILS_BASE_IN__}" ]; then
-	return
-else
-	__UTILS_BASE_IN__="$0"
-fi
+if [[ -z "${__UTILS_BASE_IN__}" ]]; then __UTILS_BASE_IN__=_; else return; fi
+
+. ${__ROOTFS__}/etc/utils/errno.in
 
 do_nothing() {
 	return
 }
 
-#
-#$1:tag
-#....
-#
-do_logger() {
-	local tag="$1"; shift
-
-	logger -t "${tag}" "$*"
+do_silent() {
+	eval "$@ &> /dev/null"
 }
 
 #
-#$1:tag
-#....
+#$1:cb
+#   cb or ok_cb:err_cb
+#$2:tag
+#$3:action...
 #
-echo_logger() {
-	local tag="$1"; shift
-	local info="$*"
+do_with_cb() {
+	local cb="$1"
+	local tag="$2"; shift 2
+	local action="$*"
+	local err=0
 
-	echo "${info}"
-	do_logger "${tag}" "${info}"
+	local ok_cb err_cb
+	if [[ "${cb}" == "${cb#*:}" ]]; then
+		#
+		# cb is NOT include :
+		#   so, both ok_cb and err_cb is cb
+		#
+		ok_cb=${cb}
+		err_cb=${cb}
+	else
+		#
+		# cb is include :
+		#   so, cb is ok_cb:err_cb
+		#
+		ok_cb=${cb%:*}; ok_cb=${ok_cb:-do_nothing}
+		err_cb=${cb#*:}; err_cb=${err_cb:-do_nothing}
+	fi
+
+	eval "${action}"; err=$?
+	if ((0==err)); then
+		${ok_cb} "${tag}" "OK: ${action}"
+	else
+		${err_cb} "${tag}" "ERROR[${err}]: ${action}"
+	fi
+
+	return ${err}
+}
+
+#
+#$1:wait
+#$2:action...
+#
+do_while_ok() {
+	local wait="$1"; shift
+	local action="$*"
+
+	local err=0
+	for ((;;)); do
+		eval "${action}" && return
+
+		sleep ${wait}
+	done
 }
 
 get_board_type() {
@@ -37,62 +72,45 @@ get_board_type() {
 }
 
 #
-#$1:task name
+#$1:board_type
 #
-gettaskcount() {
-	local task=$1
-	local count=$(ps | grep ${task} | wc -l)
+__board_check() {
+	local board_type="$1"
 
-	((count--))
-	echo ${count}
-
-	if ((0==count)); then
-		return ${e_noexist}
+	if [[ "${board_type}" != "$(get_board_type)" ]]; then
+		return ${e_bad_board}
 	fi
 }
 
+ap_board_check() {
+	__board_check ap || return $?
+}
 
-#
-#$1:task
-#[$2:app...]
-#
-monitortask() {
-	local task=$1; shift
-	local app="$*"
-	local count
+md_board_check() {
+	__board_check md || return $?
+}
 
-	count=$(gettaskcount ${task}) || {
-		if [ -z "${app}" ]; then
-			${task} &
-		else
-			${app} &
-		fi
+get_peer() {
+	local peer=${__ROOTFS__}/etc/peer
 
-		echo_logger "monitor" "monitor ${task} is dead, restart it"
-	}
+	if [[ -n "${PEER}" ]]; then
+		echo ${PEER}
+	elif [[ -f "${peer}" ]]; then
+		cat ${peer}
+	elif [[ "md" == "$(get_board_type)" ]]; then
+		echo 10.0.0.1
+	else
+		echo 10.0.0.2
+	fi
 }
 
 #
-#$1:lockfile
-#$2:action...
+#$1:prefix
 #
-exec_with_flock() {
-	local lockfile="$1"; shift
-	local action="$*"
-	local err=0
+get_varlist_with_prefix() {
+	local prefix="$1"
 
-	{
-		flock -n 3 || {
-			do_logger "flock" \
-				"FAILED: cannot lock ${lockfile}"
-
-			return ${e_flock_failed}
-		}
-
-		${action}; err=$?
-	} 3<>${lockfile}
-
-	return ${err}
+	eval "echo \${!${prefix}*}"
 }
 
 #
@@ -116,7 +134,7 @@ get_error_tag() {
 display_waiting() {
 	local times=$1
 	local interval=$2
-	local output=$3
+	local output="$3"
 	local i
 
 	for ((i=0; i<times; i++)); do

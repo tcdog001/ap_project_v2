@@ -1,35 +1,13 @@
 #!/bin/bash
 
-if [ -n "${__UTILS_VERSION_IN__}" ]; then
-	return
-else
-	__UTILS_VERSION_IN__="$0"
-fi
+if [[ -z "${__UTILS_VERSION_IN__}" ]]; then __UTILS_VERSION_IN__=_; else return; fi
 
-readonly NUM_VERSION_NUMBER=4
-readonly MIN_VERSION_NUMBER=0
-readonly MAX_VERSION_NUMBER=9999
-readonly MIN_VERSION=${MIN_VERSION_NUMBER}.${MIN_VERSION_NUMBER}.${MIN_VERSION_NUMBER}.${MIN_VERSION_NUMBER}
-readonly MAX_VERSION=${MAX_VERSION_NUMBER}.${MAX_VERSION_NUMBER}.${MAX_VERSION_NUMBER}.${MAX_VERSION_NUMBER}
-
-#
-#$1:x
-#$2:y
-#
-#	return lt/gt/eq
-#
-version_number_compare() {
-	local x="$1"
-	local y="$2"
-
-	if ((x < y)); then
-		echo "lt"
-	elif ((x > y)); then
-		echo "gt"
-	else
-		echo "eq"
-	fi
-}
+readonly -A VERSION_CONFIG=(
+	[count]=4
+	[ifs]=.
+	[min]=0
+	[max]=9999
+)
 
 #
 #$1:version
@@ -44,14 +22,7 @@ version_number() {
 	local version="$1"
 	local idx="$2"
 
-	#
-	# "a.b.c.d"==>"a b c d"
-	#
-	version="${version//./ }"
-
-	eval "local -a X=( ${version} )"
-
-	echo "${X[${idx}]}"
+	echo $(ns_number ${version} VERSION_CONFIG ${idx})
 }
 
 #
@@ -59,23 +30,10 @@ version_number() {
 #$2:version y, format a.b.c.d, a/b/c/d is number
 #
 version_compare() {
-	local version_x="$1"
-	local version_y="$2"
+	local x="$1"
+	local y="$2"
 
-	local i
-	for ((i=0; i<NUM_VERSION_NUMBER; i++)); do
-		local x=$(version_number ${version_x} $i)
-		local y=$(version_number ${version_y} $i)
-
-		local result=$(version_number_compare ${x} ${y})
-		if [ "eq" != "${result}" ]; then
-			echo "${result}"
-
-			return
-		fi
-	done
-
-	echo "eq"
+	echo $(ns_compare ${x} ${y} VERSION_CONFIG)
 }
 
 #
@@ -83,64 +41,27 @@ version_compare() {
 #
 version_check() {
 	local version="$1"
-	if [ -z "${version}" ]; then
-		return ${e_rsync_bad_version}
-	fi
 
-	local i
-	for ((i=0; i<NUM_VERSION_NUMBER; i++)); do
-		local x="$(version_number ${version} $i)"
+	ns_check ${version} VERSION_CONFIG || return $?
+}
 
-		if [ -z "${x}" ]; then
-			return ${e_bad_version}
-		fi
+version_min() {
+	echo $(ns_min VERSION_CONFIG)
+}
 
-		number_check ${x} || {
-			return ${e_bad_version}
-		}
-
-		if ((x > MAX_VERSION_NUMBER)); then
-			return ${e_bad_version}
-		fi
-	done
+version_max() {
+	echo $(ns_max VERSION_CONFIG)
 }
 
 #
-#$1:old version
+#$1:version
 #
 #	return new version
 #
 version_plusplus() {
 	local version="$1"
-	local new
-	local a=$(version_number ${old} 0)
-	local b=$(version_number ${old} 1)
-	local c=$(version_number ${old} 2)
-	local d=$(version_number ${old} 3)
 
-	if ((d < MAX_VERSION_NUMBER)); then
-		((d++))
-		new="${a}.${b}.${c}.${d}"
-	elif ((c < MAX_VERSION_NUMBER)); then
-		((d=0))
-		((c++))
-		new="${a}.${b}.${c}.${d}"
-	elif ((b < MAX_VERSION_NUMBER)); then
-		((d=0))
-		((c=0))
-		((b++))
-		new="${a}.${b}.${c}.${d}"
-	elif ((a < MAX_VERSION_NUMBER)); then
-		((d=0))
-		((c=0))
-		((b=0))
-		((a++))
-		new="${a}.${b}.${c}.${d}"
-	else
-		new=${MAX_VERSION}
-	fi
-
-	echo "${new}"
+	echo $(ns_plusplus ${version} VERSION_CONFIG)
 }
 
 
@@ -157,10 +78,10 @@ get_version_byfilter() {
 	local version
 
 	for version in ${list}; do
-		acc="$(${filter} ${version} ${acc})"
+		acc=$(${filter} "${version}" "${acc}")
 	done
 
-	if [ "${init}" == "${acc}" ]; then
+	if [[ "${init}" == "${acc}" ]]; then
 		return ${e_noexist}
 	else
 		echo "${acc}"
@@ -175,7 +96,7 @@ min_version_filter() {
 	local version="$1"
 	local acc="$2"
 
-	if [ "lt" == "$(version_compare ${version} ${acc})" ]; then
+	if [[ "lt" == "$(version_compare ${version} ${acc})" ]]; then
 		echo "${version}"
 	else
 		echo "${acc}"
@@ -187,7 +108,7 @@ min_version_filter() {
 #
 get_min_version() {
 	local list="$*"
-	local version="$(get_version_byfilter ${MAX_VERSION} min_version_filter ${list})"
+	local version="$(get_version_byfilter $(version_max) min_version_filter ${list})"
 
 	echo "${version}"
 }
@@ -200,7 +121,7 @@ max_version_filter() {
 	local version="$1"
 	local acc="$2"
 
-	if [ "gt" == "$(version_compare ${version} ${acc})" ]; then
+	if [[ "gt" == "$(version_compare ${version} ${acc})" ]]; then
 		echo "${version}"
 	else
 		echo "${acc}"
@@ -212,7 +133,7 @@ max_version_filter() {
 #
 get_max_version() {
 	local list="$*"
-	local version="$(get_version_byfilter ${MIN_VERSION} max_version_filter ${list})"
+	local version="$(get_version_byfilter ${version_min} max_version_filter ${list})"
 
 	echo "${version}"
 }

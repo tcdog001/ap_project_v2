@@ -1,11 +1,6 @@
 #!/bin/bash
 
-if [ -n "${__UTILS_ERRNO_IN__}" ]; then
-	return
-else
-	__UTILS_ERRNO_IN__="$0"
-fi
-
+if [[ -z "${__UTILS_ERRNO_IN__}" ]]; then __UTILS_ERRNO_IN__=_; else return; fi
 
 #
 # from linux errno-base.h
@@ -31,7 +26,6 @@ readonly e_nxio=6		# /* No such device or address */
 readonly e_2big=7		# /* Argument list too long */
 #readonly e_noexec=8	# /* Exec format error */
 readonly e_bad_json=9	# private
-readonly e_badf=9		# /* Bad file number */
 readonly e_child=10		# /* No child processes */
 readonly e_again=11		# /* Try again */
 readonly e_nomem=12		# /* Out of memory */
@@ -58,17 +52,20 @@ readonly e_mlink=31		# /* Too many links */
 readonly e_pipe=32		# /* Broken pipe */
 readonly e_dom=33		# /* Math argument out of domain of func */
 readonly e_range=34		# /* Math result not representable */
-readonly e_perm=35	  # /* Operation not permitted */
-readonly e_noent=35	 # /* No such file or directory */
+readonly e_perm=35	  	# /* Operation not permitted */
+readonly e_noent=35	 	# /* No such file or directory */
+readonly e_toomore=36   # private
+readonly e_noeq=37
 
 readonly e_nosupport=40
 readonly e_bad_board=41
 readonly e_bad_number=42
-readonly e_bad_version=43
-readonly e_flock_failed=44
-readonly e_mount_failed=45
-readonly e_mkfs_failed=46
-readonly e_usbupgrade=47
+readonly e_bad_ns=43
+readonly e_bad_version=44
+readonly e_bad_httpcode=45
+readonly e_flock_failed=46
+readonly e_mount_failed=47
+readonly e_usbupgrade=48
 
 readonly e_jsock_bad_mode=50
 readonly e_jsock_bad_type=51
@@ -89,22 +86,6 @@ readonly e_rsync_last_abnormal=66
 readonly e_upgrade_no_rsync=70
 readonly e_upgrade_running=71
 
-
-#
-#$1:olderr
-#$2:newerr
-#
-seterrno() {
-	local olderr=$1
-	local newerr=$2
-
-	if [ "0" == "${newerr}" ]; then
-		echo ${olderr}
-	else
-		echo ${newerr}
-	fi
-}
-
-echo_stderr() {
-	echo "$@" 1>&2
-}
+readonly e_sysfsck_failed=80
+readonly e_sysfsck_count=81
+readonly e_sysfsck_md5=82

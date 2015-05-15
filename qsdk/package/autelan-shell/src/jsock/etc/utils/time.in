@@ -1,10 +1,6 @@
 #!/bin/bash
 
-if [ -n "${__UTILS_TIME_IN__}" ]; then
-	return
-else
-	__UTILS_TIME_IN__="$0"
-fi
+if [[ -z "${__UTILS_TIME_IN__}" ]]; then __UTILS_TIME_IN__=_; else return; fi
 
 getdate() {
 	date '+%F'
@@ -16,4 +12,8 @@ gettime() {
 
 getnow() {
 	date '+%F-%H:%M:%S'
+}
+
+__getnow() {
+	date '+%F %H:%M:%S'
 }
