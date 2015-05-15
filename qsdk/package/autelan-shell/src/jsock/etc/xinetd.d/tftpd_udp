@@ -1,0 +1,13 @@
+service tftp
+{
+	type = UNLISTED
+	socket_type = dgram
+	protocol = udp
+	port = 69
+	user = root
+	wait = yes
+	server = /usr/bin/tftpd
+	server_args = -c /tmp/tftp/
+	disable = no
+	only_from = 1.0.0.1
+}
