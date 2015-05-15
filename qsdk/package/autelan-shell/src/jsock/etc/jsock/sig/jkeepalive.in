@@ -1,0 +1,62 @@
+#!/bin/bash
+
+if [[ -n "${__JSOCK_SIG_JKEEPALIVE_IN__}" ]]; then
+	return
+else
+	__JSOCK_SIG_JKEEPALIVE_IN__="$0"
+fi
+
+. ${__ROOTFS__}/etc/jsock/jsock.in
+
+readonly jkeepalive_threshold=3
+
+readonly file_jkeepalive_drop=/tmp/.jkeepalive_drop
+readonly file_jkeepalive_good=/tmp/.jkeepalive_good
+readonly file_jkeepalive_send=/tmp/.jkeepalive_send
+readonly file_jkeepalive_recv=/tmp/.jkeepalive_recv
+readonly file_jkeepalive_state=/tmp/.jkeepalive_state
+
+keepalive_nok() {
+	set_file_value ${file_jkeepalive_state} nok
+	sysalarm on &
+	killall stimer_keepalive_ok.sh &>/dev/null
+}
+
+keepalive_ok() {
+	set_file_value ${file_jkeepalive_state} ok
+	sysalarm off &
+	${__ROOTFS__}/etc/stimer/stimer_keepalive_ok.sh &
+}
+
+keepalive_send() {
+	#
+	#   1. send keepalive
+	#   2. send++
+	#   3. drop++
+	#   4. try nok
+	#
+	${__ROOTFS__}/etc/jsock/jsig.sh asyn jkeepalive
+
+	local send=$(readnumberfile_andaddone ${file_jkeepalive_send})
+	local drop=$(readnumberfile_andaddone ${file_jkeepalive_drop})
+	if ((drop > jkeepalive_threshold)); then
+		keepalive_nok
+	fi
+}
+
+keepalive_recv() {
+	#
+	#   1. recv++
+	#   2. good++
+	#   3. clean drop
+	#   3. try ok
+	#
+	local recv=$(readnumberfile_andaddone ${file_jkeepalive_recv})
+	local good=$(readnumberfile_andaddone ${file_jkeepalive_good})
+	local drop=$(setfilevalue ${file_jkeepalive_drop} 0)
+
+	local state=$(get_file_value ${file_jkeepalive_state})
+	if [[ "ok" != "${state}" ]]; then
+		keepalive_ok
+	fi
+}

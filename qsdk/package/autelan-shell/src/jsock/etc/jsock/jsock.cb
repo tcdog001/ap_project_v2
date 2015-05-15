@@ -2,7 +2,6 @@
 
 . ${__ROOTFS__}/etc/jsock/jsock.in
 
-
 #
 #$1:mode
 #$2:type
@@ -77,7 +76,7 @@ jsock_cb() {
 	local target="${__ROOTFS__}/etc/jsock/${type}/${name}.*.cb"
 	local cblist=$(ls ${target} 2>/dev/null)
 
-	if [ -z "${cblist}" ]; then
+	if [[ -z "${cblist}" ]]; then
 		stderr="no-found ${target}"
 		errno=${e_noexist}
 
@@ -87,7 +86,7 @@ jsock_cb() {
 		# call callback
 		#
 		for cb in ${cblist}; do
-			if [ ! -x "${cb}" ]; then
+			if [[ ! -x "${cb}" ]]; then
 				local info="need chmod +x ${cb}"
 				j${type}_debug_trace "${type} callback ${info}"
 
@@ -101,7 +100,7 @@ jsock_cb() {
 	# try reply ack, first
 	#
 	local newbody
-	if [ "ack" == "${mode}" ]; then
+	if [[ "ack" == "${mode}" ]]; then
 		newbody=$(jsock_cb_body "${errno}" "${stdout}" "${stderr}")
 		jsock_reply "${mode}" "${type}" "${name}" "${newbody}"
 	fi
@@ -109,25 +108,22 @@ jsock_cb() {
 	#
 	# call callback
 	#
-	if [ -n "${cblist}" ]; then
+	if [[ -n "${cblist}" ]]; then
 		for cb in ${cblist}; do
-			if [ -x "${cb}" ]; then
-				local -a std
-				get_out_and_error std "${cb}" "${body}"
+			if [[ -x "${cb}" ]]; then
+				local err=0
+				local tmp
 
-#				local -a std=([0]="${cb} ${body}")
-#				get_out_and_error2 std
-
-				errno=$(seterrno ${errno} ${std[0]})
-				if [ "0" == "${errno}" ]; then
-					j${type}_debug_ok "${cb} ${body} stdout:${std[1]}"
+				tmp=$( (${cb} ${body}) 2>&1 ); err=$?
+				if ((0==err)); then
+					stdout=$(strcat "${stdout}" "${tmp}")
+					j${type}_debug_ok "${cb} ${body} stdout:${tmp}"
 				else
-					j${type}_debug_error "${cb} ${body} stderr:${errno}:${std[2]}"
+					stderr=$(strcat "${stderr}" "${tmp}")
+					j${type}_debug_error "${cb} ${body} stderr:${err}:${tmp}"
 				fi
 
-				stdout=$(strcat "${stdout}" "${std[1]}")
-				stderr=$(strcat "${stderr}" "${std[2]}")
-				unset std
+				errno=$(seterrno ${errno} ${err})
 			fi
 		done
 	fi
@@ -135,28 +131,12 @@ jsock_cb() {
 	#
 	# try reply syn
 	#
-	if [ "syn" == "${mode}" ]; then
+	if [[ "syn" == "${mode}" ]]; then
 		newbody=$(jsock_cb_body "${errno}" "${stdout}" "${stderr}")
 		jsock_reply "${mode}" "${type}" "${name}" "${newbody}"
 	fi
 
 	return ${errno}
-}
-
-#
-#$1:input
-#
-jcmd_result_handle() {
-	local input="$*"
-
-	#
-	# result handle
-	#
-	local substring="#012"
-	local repstring=""
-	local output=${input//${substring}/${repstring}}
-
-	echo "${output}"
 }
 
 #
@@ -196,24 +176,24 @@ jcmd_cb() {
 	#
 	local first=$(echo "${name}" | awk '{print $1}')
 	local fullname=$(which ${first})
-	if [ -z "${fullname}" ]; then
+	if [[ -z "${fullname}" ]]; then
 		stderr="no found command:${fullname}"
 		jcmd_logger "${stderr}"
 		errno=${e_noexist}
-	elif [ ! -x "${fullname}" ]; then
+	elif [[ ! -x "${fullname}" ]]; then
 		stderr="need chmod +x ${fullname}"
 		jcmd_logger "${stderr}"
 		errno=${e_noexec}
 	fi
 
 	local newbody=$(jsock_cb_body "${errno}" "${stdout}" "${stderr}")
-	if [ "0" != "${errno}" ]; then
+	if [[ "0" != "${errno}" ]]; then
 		#
 		# command no found
 		#	if need reply, do reply
 		#	exit
 		#
-		if [ "asyn" != "${mode}" ]; then
+		if [[ "asyn" != "${mode}" ]]; then
 			jsock_reply "${mode}" "${type}" "${name}" "${newbody}"
 		fi
 
@@ -236,19 +216,13 @@ jcmd_cb() {
 		# command found
 		# exec syn command
 		#
-		local -a std
-		get_out_and_error std "${name}" "${args}"
-
-#		local -a std=([0]="${name} ${args}")
-#		get_out_and_error2 std
-
-		errno=${std[0]}
-		stdout=$(jcmd_result_handle "${std[1]}")
-		stderr=$(jcmd_result_handle "${std[2]}")
-
-		if [ "0" == "${errno}" ]; then
+		local err=0
+		local tmp=$( (${name} ${args}) 2>&1 ); errno=$?
+		if ((0==errno)); then
+			stdout=${tmp}
 			jcmd_logger "${name} ${args} stdout:${stdout}"
 		else
+			stderr=${tmp}
 			jcmd_logger "${name} ${args} stderr:${errno}:${stderr}"
 		fi
 
@@ -283,28 +257,28 @@ main() {
 	}
 
 	local mode="$(echo ${json} | jq -j '.mode|strings')"
-	if [ -z "${mode}" ]; then
+	if [[ -z "${mode}" ]]; then
 		jsock_debug_error "jsock.cb bad mode=${mode}"
 
 		return ${e_jsock_bad_mode}
 	fi
 
 	local type="$(echo ${json} | jq -j '.type|strings')"
-	if [ -z "${type}" ]; then
+	if [[ -z "${type}" ]]; then
 		jsock_debug_error "jsock.cb bad type=${type}"
 
 		return ${e_jsock_bad_type}
 	fi
 
 	local name="$(echo ${json} | jq -j '.name|strings')"
-	if [ -z "${name}" ]; then
+	if [[ -z "${name}" ]]; then
 		jsock_debug_error "jsock.cb bad name=${name}"
 
 		return ${e_jsock_bad_name}
 	fi
 
 	local body="$(echo ${json} | jq -r '.body|objects')"
-	if [ -z "${body}" ]; then
+	if [[ -z "${body}" ]]; then
 		jsock_debug_error "jsock.cb bad body=${body}"
 
 		return ${e_jsock_bad_body}
@@ -312,15 +286,14 @@ main() {
 
 	jsock_debug_trace "jsock.cb recive mode=${mode} type=${type} name=${name} body=${body}"
 
-	if [ "cmd" == "${type}" ]; then
+	if [[ "cmd" == "${type}" ]]; then
 		jcmd_cb "${mode}" "${type}" "${name}" "${body}"; err=$?
 	else # sig or msg
 		jsock_cb "${mode}" "${type}" "${name}" "${body}"; err=$?
 	fi
 
-	local state=$(jsock_peer_state)
-	if [ "nok" == "${state}" ]; then
-		jsock_peer_state 'ok'
+	if [[ "ok" != "$(get_jsock_peer_state)" ]]; then
+		set_jsock_peer_state ok
 	fi
 
 	return ${err}

@@ -2,7 +2,6 @@
 
 . ${__ROOTFS__}/etc/jsock/jsock.in
 
-
 usage() {
 	echo "$0 usage:"
 	echo "  $0 {mode} {name} [args...]"

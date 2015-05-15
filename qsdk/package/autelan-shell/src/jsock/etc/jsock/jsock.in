@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -n "${__JSOCK_JSOCK_IN__}" ]; then
+if [[ -n "${__JSOCK_JSOCK_IN__}" ]]; then
 	return
 else
 	__JSOCK_JSOCK_IN__="$0"
@@ -8,80 +8,65 @@ fi
 
 . ${__ROOTFS__}/etc/utils/utils.in
 
-if [ -z "${JSOCK_PORT}" ]; then
-	JSOCK_PORT=9527
-fi
-if [ -z "${JSOCK_PROTOCOL}" ]; then
-	JSOCK_PROTOCOL="tcp"
-fi
-if [ -z "${JSOCK_TIMEOUT}" ]; then
-	JSOCK_TIMEOUT=3
-fi
-if [ -z "${JSOCK_FD}" ]; then
-	JSOCK_FD=4
-fi
+JSOCK_PORT=${JSOCK_PORT:-9527}
+JSOCK_PROTOCOL=${JSOCK_PROTOCOL:-tcp}
+JSOCK_TIMEOUT=${JSOCK_TIMEOUT:-3}
 
 JSOCK_PEER=$(get_file_value ${__ROOTFS__}/etc/peer ${PEER})
-JSOCK_PEER_STATE_FILE=/tmp/.jsock_peer_state
+file_jsock_peer_state=/tmp/.jsock_peer_state
 
-readonly JSOCK_PEER_STATE_LIST="nok ok"
-readonly JSOCK_MODE_LIST="asyn ack syn"
-readonly JSOCK_TYPE_LIST="sig msg cmd"
-
-#
-# ${!VAR*}==>VARxxx VARyyy VARzzz ...
-#
-VARLIST_JSOCK_PATH="${!JSOCK_*} ${!DEBUG*}"
+readonly list_jsock_mode="asyn ack syn"
+readonly list_jsock_type="sig msg cmd"
 
 jsock_debug_ok() {
-	debug_echo "__jsock__" "__all__" "__ok__" $@
+	debug_echo __jsock__ __all__ __ok__ "$@"
 }
 
 jsock_debug_error() {
-	debug_echo "__jsock__" "__all__" "__error__" $@
+	debug_echo __jsock__ __all__ __error__ "$@"
 }
 
 jsock_debug_trace() {
-	debug_echo "__jsock__" "__all__" "__trace__" $@
+	debug_echo __jsock__ __all__ __trace__ "$@"
 }
 
 
 jsig_debug_ok() {
-	debug_echo "__jsig__" "__all__" "__ok__" $@
+	debug_echo __jsig__ __all__ __ok__ "$@"
 }
 
 jsig_debug_error() {
-	debug_echo "__jsig__" "__all__" "__error__" $@
+	debug_echo __jsig__ __all__ __error__ "$@"
 }
 
 jsig_debug_trace() {
-	debug_echo "__jsig__" "__all__" "__trace__" $@
+	debug_echo __jsig__ __all__ __trace__ "$@"
 }
 
 
 jmsg_debug_ok() {
-	debug_echo "__jmsg__" "__all__" "__ok__" $@
+	debug_echo __jmsg__ __all__ __ok__ "$@"
 }
 
 jmsg_debug_error() {
-	debug_echo "__jmsg__" "__all__" "__error__" $@
+	debug_echo __jmsg__ __all__ __error__ "$@"
 }
 
 jmsg_debug_trace() {
-	debug_echo "__jmsg__" "__all__" "__trace__" $@
+	debug_echo __jmsg__ __all__ __trace__ "$@"
 }
 
 
 jcmd_debug_ok() {
-	debug_echo "__jcmd__" "__all__" "__ok__" $@
+	debug_echo __jcmd__ __all__ __ok__ "$@"
 }
 
 jcmd_debug_error() {
-	debug_echo "__jcmd__" "__all__" "__error__" $@
+	debug_echo __jcmd__ __all__ __error__ "$@"
 }
 
 jcmd_debug_trace() {
-	debug_echo "__jcmd__" "__all__" "__trace__" $@
+	debug_echo __jcmd__ __all__ __trace__ "$@"
 }
 
 #
@@ -104,19 +89,19 @@ jcmd_do() {
 }
 
 jsock_logger() {
-	do_logger "jsock" "$@"
+	do_logger jsock "$@"
 }
 
 jsig_logger() {
-	do_logger "jsig" "$@"
+	do_logger jsig "$@"
 }
 
 jmsg_logger() {
-	do_logger "jmsg" "$@"
+	do_logger jmsg "$@"
 }
 
 jcmd_logger() {
-	do_logger "jcmd" "$@"
+	do_logger jcmd "$@"
 }
 
 
@@ -148,7 +133,7 @@ __jsock_json() {
 __jsock_check_mode() {
 	local mode=$1
 
-	in_list_check "${mode}" JSOCK_MODE_LIST || {
+	in_list_check "${mode}" ${list_jsock_mode} || {
 		return ${e_jsock_bad_mode}
 	}
 }
@@ -159,61 +144,9 @@ __jsock_check_mode() {
 __jsock_check_type() {
 	local type=$1
 
-	in_list_check "${type}" JSOCK_TYPE_LIST || {
+	in_list_check "${type}" ${list_jsock_type} || {
 		return ${e_jsock_bad_type}
 	}
-}
-
-#
-#[$1:host]
-#[$2:port]
-#[$3:protocol]
-#
-jsock_open() {
-	local host=$1
-	local port=$2
-	local protocol=$3
-
-	if [ -z "${host}" ]; then
-		host=${JSOCK_PEER}
-	fi
-
-	if [ -z "${port}" ]; then
-		port=${JSOCK_PORT}
-	fi
-
-	if [ -z "${protocol}" ]; then
-		protocol=${JSOCK_PROTOCOL}
-	fi
-
-	jsock_do "exec ${JSOCK_FD}<>/dev/${protocol}/${host}/${port}"
-}
-
-#
-#no args
-#
-jsock_close() {
-	jsock_do "exec ${JSOCK_FD}>&-"
-}
-
-#
-#$1:json
-#
-jsock_send() {
-	local json="$1"
-
-	json_check "${json}" || {
-		return ${e_bad_json}
-	}
-
-	jsock_do "echo '${json}' >&${JSOCK_FD}"
-}
-
-#
-#NO used ......
-#
-jsock_recv() {
-	jsock_do "cat <&${JSOCK_FD}"
 }
 
 #
@@ -227,52 +160,46 @@ jsock_recv() {
 #	"name":"NAME",
 #	"body":{
 #		"errno":"ERRNO",
-#		"errinfo":"ERRINFO",
-#		"result":"RESULT"
+#		"stdout":"STDOUT",
+#		"stderr":"STDERR"
 #	}
 # }
 #
 jsock_handle() {
 	local mode="$1"
 	local type="$2"
-	local name="$3"
-	local json="$4"
+	local name="$3"; shift 3
+	local json="$*"
 
-	local stdout
-	local stderr
-	local errno
-	local err=0
+#	if [[ "${mode}" != "$(echo ${json} | jq -j '.mode|strings')" ]]; then
+#		return ${e_jsock_bad_mode}
+#	elif [[ "${type}" != "$(echo ${json} | jq -j '.type|strings')" ]]; then
+#		return ${e_jsock_bad_type}
+#	elif [[ "${name}" != "$(echo ${json} | jq -j '.name|strings')" ]]; then
+#		return ${e_jsock_bad_name}
+#	fi
 
-	if [ "${mode}" != "$(echo ${json} | jq -j '.mode|strings')" ]; then
-		err=${e_jsock_bad_mode}
-	elif [ "${type}" != "$(echo ${json} | jq -j '.type|strings')" ]; then
-		err=${e_jsock_bad_type}
-	elif [ "${name}" != "$(echo ${json} | jq -j '.name|strings')" ]; then
-		err=${e_jsock_bad_name}
+	local body="$(echo ${json} | jq -j '.body|objects')"
+	if [[ -z "${body}" ]]; then
+		return ${e_jsock_bad_body}
 	fi
 
-	errno="$(echo ${json} | jq -j '.body.errno|strings')"
-	if [ -z "${errno}" ]; then
-		err=${e_jsock_bad_errno}
-	elif [ "0" != "${errno}" ]; then
-		err=${errno}
+	local errno="$(echo ${body} | jq -j '.errno|strings')"
+	if [[ -z "${errno}" ]]; then
+		return ${e_jsock_bad_errno}
+	elif ((0!=errno)); then
+		return ${errno}
 	fi
 
-	stdout="$(echo ${json} | jq -j '.body.stdout|strings')"
-	if [ -z "${stdout}" ]; then
-		err=${e_jsock_bad_stdout}
-	else
+	local stdout="$(echo ${body} | jq -j '.stdout|strings')"
+	if [[ -n "${stdout}" ]]; then
 		echo "${stdout}"
 	fi
 
-	stderr="$(echo ${json} | jq -j '.body.stderr|strings')"
-	if [ -z "${stderr}" ]; then
-		err=${e_jsock_bad_stderr}
-	else
+	local stderr="$(echo ${body} | jq -j '.stderr|strings')"
+	if [[ -n "${stderr}" ]]; then
 		echo "${stderr}" >&2
 	fi
-
-	return ${err}
 }
 
 #
@@ -280,7 +207,7 @@ jsock_handle() {
 #$2:mode
 #$3:type
 #$4:name
-#$5:input body(json}...
+#$5:body(json}...
 #
 jsock() {
 	local host="$1"
@@ -290,42 +217,47 @@ jsock() {
 	local body="$*"
 	local err=0
 
-	__jsock_check_mode "${mode}" || {
-		return $? 
-	}
-	__jsock_check_type "${type}" || {
-		return $?
-	}
-
-	if [ -z "${name}" ]; then
+	if [[ -z "${name}" ]]; then
 		return ${e_jsock_bad_name}
 	fi
-
-	json_check "${body}" || {
-		return $?
-	}
+	__jsock_check_mode "${mode}" || return $?
+	__jsock_check_type "${type}" || return $?
+	json_check "${body}" || return $?
 
 	local json=$(__jsock_json "${mode}" "${type}" "${name}" "${body}")
 
-	jsock_open "${host}"
-	jsock_send "${json}"
+	#
+	# open
+	#
+	exec 8<>/dev/${JSOCK_PROTOCOL}/${host}/${JSOCK_PORT} 2>/dev/null || return $?
+	#
+	# send
+	#
+	echo "${json}" >&8
 	#
 	# recv when ack/syn
 	#
 	if [[ "ack" == "${mode}" || "syn" == "${mode}" ]]; then
-		json=$(jsock_recv)
+		#
+		# recv
+		#
+		json=$(cat<&8)
 
 		j${type}_logger "jsock recv reply json:${json}"
 		json_check "${json}" || {
 			return ${e_bad_json}
 		}
 
-		local info=$(jsock_handle "${mode}" "${type}" "${name}" "${json}"); err=$?
-		if [ -n "${info}" ]; then
+		local info
+		info=$(jsock_handle "${mode}" "${type}" "${name}" "${json}"); err=$?
+		if [[ -n "${info}" ]]; then
 			echo "${info}"
 		fi
 	fi
-	jsock_close
+	#
+	# close
+	#
+	exec 8>&-
 
 	return ${err}
 }
@@ -341,14 +273,14 @@ jsig() {
 	local mode="$2"
 	local name="$3"
 
-	jsock "${host}" "${mode}" "sig" "${name}" "${JSON_NULL_OBJECT}"
+	jsock "${host}" "${mode}" "sig" "${name}" "{}"
 }
 
 #
 #$1:host
 #$2:mode
 #$3:name
-#$4:body
+#$4:body...
 #
 jmsg() {
 	local host="$1"
@@ -375,26 +307,17 @@ jcmd() {
 	jsock "${host}" "${mode}" "cmd" "${name}" "${body}"
 }
 
+get_jsock_peer_state() {
+	echo "$(get_file_state ${file_jsock_peer_state} ok nok)"
+}
+
 #
-#[$1:state]
+#$1:state
 #
-jsock_peer_state() {
+set_jsock_peer_state() {
 	local state="$1"
 
-	# get state
-	if [ "0" == "$#" ]; then
-		if [ -f ${JSOCK_PEER_STATE_FILE} ]; then
-			echo 'ok'
-		else
-			echo 'nok'
-		fi
-	else # set state
-		if [ "ok" == "${state}" ]; then
-			touch ${JSOCK_PEER_STATE_FILE}
-		else
-			rm -f ${JSOCK_PEER_STATE_FILE}
-		fi
-	fi
+	set_file_state ${file_jsock_peer_state} ok nok "${state}"
 }
 
 #
@@ -402,11 +325,11 @@ jsock_peer_state() {
 #$2:action
 #
 jsock_io_check() {
-	local self="$0"
+	local self="$0" #yes, 0
 	local board="$1"
 	local action="$2"
 
-	if [ "${board}" != "$(get_board_type)" ]; then
+	if [[ "${board}" != "$(get_board_type)" ]]; then
 		jsock_logger "cannot ${action} message/signal:${self%%.*} on ${board}"
 
 		return ${e_bad_board}
@@ -414,31 +337,27 @@ jsock_io_check() {
 }
 
 jsock_ap_recive_check() {
-	jsock_io_check "ap" "recive" || {
+	jsock_io_check ap recive || {
 		return ${e_bad_board}
 	}
 }
 
 jsock_md_recive_check() {
-	jsock_io_check "md" "recive" || {
+	jsock_io_check md recive || {
 		return ${e_bad_board}
 	}
 }
 
 jsock_ap_send_check() {
-	jsock_io_check "ap" "send" || {
+	jsock_io_check ap send || {
 		return ${e_bad_board}
 	}
 }
 
 jsock_md_send_check() {
-	jsock_io_check "md" "send" || {
+	jsock_io_check md send || {
 		return ${e_bad_board}
 	}
 }
 
-main() {
-	debug_varlist ${VARLIST_JSOCK_PATH}
-}
-
-main "$@"
+#debug_varlist ${!JSOCK_*} ${!list_jsock_*}

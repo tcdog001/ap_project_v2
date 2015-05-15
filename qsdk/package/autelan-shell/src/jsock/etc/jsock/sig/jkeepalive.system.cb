@@ -1,10 +1,6 @@
 #!/bin/bash
 
-. ${__ROOTFS__}/etc/jsock/sig/sig.in
-
-#
-# NOT used now!!!
-#
+. ${__ROOTFS__}/etc/jsock/sig/jkeepalive.in
 
 #
 #call by jsock.cb
@@ -12,9 +8,7 @@
 #no args
 #
 main() {
-	local state="$(jsock_peer_state)"
-
-
+	keepalive_recv
 }
 
 main "$@"
