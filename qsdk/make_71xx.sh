@@ -8,6 +8,7 @@ main () {
 	local hisitopdir="$1"
 	local opt="$2"
 	local dir_md=${hisitopdir}/custom/image
+	local dir_pub=${hisitopdir}/histb/pub/image
 	local sysupgrade_image=openwrt-ar71xx-generic-ap147-16M-squashfs-sysupgrade.bin
 
 	if [ "" == "${hisitopdir}" ]; then
@@ -28,6 +29,7 @@ main () {
 	tar zcvf lte-openwrt.img ${sysupgrade_image} sysupgrade.md5
 
 	cp -f ${sysupgrade_image} ${dir_md}/sysupgrade.bin
+	cp -f ${sysupgrade_image} ${dir_pub}/sysupgrade.bin
 	popd
 }
 
