@@ -5,7 +5,8 @@
 #
 main () {
 	local file_version=files/etc/.version
-	local hisitopdir=$1
+	local hisitopdir="$1"
+	local opt="$2"
 	local dir_md=${hisitopdir}/custom/image
 	local sysupgrade_image=openwrt-ar71xx-generic-ap147-16M-squashfs-sysupgrade.bin
 
@@ -19,7 +20,7 @@ main () {
 	rm -fr build_dir/target-*/thirdpart-*
 
 	#make V=s
-	make
+	make ${opt}
 	echo "version=$(cat staging_dir/target-mips_r2_uClibc-0.9.33.2/root-ar71xx/etc/.version)"
 
 	pushd bin/ar71xx/
