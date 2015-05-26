@@ -19,3 +19,4 @@
 .emacs.desktop*
 TAGS*~
 git-src
+package/capp
