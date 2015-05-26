@@ -18,6 +18,9 @@ main () {
 	
 	rm -fr build_dir/target-*/autelan-*
 	rm -fr build_dir/target-*/thirdpart-*
+#	rm -fr build_dir/target-*/myapp
+#	rm -fr build_dir/target-*/mylib
+	rm -fr build_dir/target-*/capp
 
 	#make V=s
 	make ${opt}
