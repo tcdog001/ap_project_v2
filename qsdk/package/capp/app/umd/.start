@@ -1,0 +1,15 @@
+#!/bin/bash
+
+main() {
+	./.stop
+
+	./.reload
+
+	../../app/jlogd/jlogd &
+	sleep 1
+
+	sudo ../../app/umd/umd &
+	sleep 1
+}
+
+main "$@"

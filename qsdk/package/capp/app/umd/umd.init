@@ -1,0 +1,56 @@
+#!/bin/sh /etc/rc.common
+
+. ${__ROOTFS__}/etc/appkey/appkey.in
+
+START=90
+STOP=10
+
+USE_PROCD=1
+
+start_service() {
+	appkey_load_uci um
+
+	procd_open_instance
+	procd_set_param command /usr/bin/um
+	procd_set_param respawn
+	procd_set_param watch um
+	procd_close_instance
+}
+
+reload_service() {
+	appkey_load_uci um
+	appkey -reload
+
+	ubus call um reload
+}
+
+stop_service() {
+	killall um
+}
+
+service_running() {
+	ubus -t 30 wait_for um
+}
+
+service_triggers()
+{
+	procd_add_reload_trigger um
+}
+
+
+start() {
+	start_service
+}
+
+stop() {
+	stop_service
+}
+
+restart() {
+	stop
+	start
+}
+
+reload() {
+	reload_service
+}

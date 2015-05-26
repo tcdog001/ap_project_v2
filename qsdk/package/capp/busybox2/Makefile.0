@@ -1,0 +1,64 @@
+################################################################################
+#    ./udev/Makefile
+#    Create By CaiZhiYong
+#    2011.06.19
+################################################################################
+# PREFIX        - rootfs path
+# CROSS_COMPILE - cross compile tools
+################################################################################
+
+ifeq ($(CFG_HI_EXPORT_FLAG),)
+SDK_DIR := $(shell pwd)/../../..
+include $(SDK_DIR)/base.mak
+endif
+
+
+PREFIX         ?= $(shell pwd)/rootfs
+CROSS_COMPILE  ?= arm-hisiv200-linux-
+HOST           := $(patsubst %-,%,$(CROSS_COMPILE))
+CONFIG_BUSYBOX_NAME := \
+	$(if $(CFG_HI_BUSYBOX_CFG_NAME),$(CFG_HI_BUSYBOX_CFG_NAME),$(HOST).config)
+	
+	
+BUSYBOX_VERSION       ?= gcc4.4
+
+MKFLAGS += CONFIG_BUSYBOX_NAME=$(CONFIG_BUSYBOX_NAME)
+
+ifdef CFG_HI_ADVCA_FUNCTION
+ifndef CFG_HI_LOADER_APPLOADER
+CONFIG_BUSYBOX_USER_NAME := \
+	$(if $(CFG_HI_BUSYBOX_CFG_USER_NAME),$(CFG_HI_BUSYBOX_CFG_USER_NAME),$(HOST).config)
+
+MKFLAGS += CONFIG_BUSYBOX_USER_NAME=$(CONFIG_BUSYBOX_USER_NAME)
+MKFLAGS += CONFIG_CA_RELEASE=$(CFG_ADVCA_FUNCTION)
+endif
+endif
+################################################################################
+#AUTELAN
+all: clean
+	@test -d $(BUSYBOX_VERSION)
+	@cd $(BUSYBOX_VERSION) && \
+		make $(MKFLAGS) && \
+	cd -
+################################################################################
+
+clean:
+	@test -d $(BUSYBOX_VERSION)
+	@cd $(BUSYBOX_VERSION) && \
+		make $(MKFLAGS) clean && \
+	cd -
+
+menuconfig:
+	@test -d $(BUSYBOX_VERSION)
+	@cd $(BUSYBOX_VERSION) && \
+		make $(MKFLAGS) menuconfig && \
+	cd -
+
+distclean: clean
+
+install:
+	@echo "not support"
+
+################################################################################
+.PHONY: clean menuconfig distclean install
+################################################################################
