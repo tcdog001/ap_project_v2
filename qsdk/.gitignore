@@ -11,6 +11,8 @@
 /tmp
 /logs
 /package/openwrt-packages
+/package/capp
+/package/autelan-shell/src/jsock
 *.orig
 *.rej
 *~
